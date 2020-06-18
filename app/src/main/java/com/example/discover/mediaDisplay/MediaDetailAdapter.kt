@@ -204,6 +204,7 @@ class MediaDetailAdapter(
         language: String,
         genreIds: List<Int>, rating: Double
     ) {
+        holder.poster.scaleType = ImageView.ScaleType.CENTER_INSIDE
         holder.posterTask?.cancel(true)
         holder.posterTask = LoadPoster(
             WeakReference(
@@ -215,8 +216,7 @@ class MediaDetailAdapter(
 
         holder.ratingBar.progress = (rating * 10).toInt()
         holder.rating.text = "${(rating * 10).toInt()} %"
-        val mTitle = "Title: $title"
-        holder.title.text = mTitle
+        holder.title.text = title
 
         val releaseDate =
             if (date != null && date.trim().isEmpty()) "Release Date: -" else "Release Date: $date"
@@ -258,7 +258,6 @@ class MediaDetailAdapter(
     }
 
     fun setMovieList(list: List<MoviePreview>) {
-        Log.d("Recycler view", list.size.toString())
         val result = DiffUtil.calculateDiff(
             ResultMoviesListDiffUtilCallback(
                 movies,
@@ -271,7 +270,6 @@ class MediaDetailAdapter(
     }
 
     fun setTvShowList(list: List<ShowPreview>) {
-        Log.d("setTvShowList", "${list.size} ${shows.size}")
         val result = DiffUtil.calculateDiff(
             ResultShowsListDiffUtilCallback(
                 this.shows,

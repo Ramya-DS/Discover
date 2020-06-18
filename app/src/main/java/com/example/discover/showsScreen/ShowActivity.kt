@@ -2,6 +2,7 @@ package com.example.discover.showsScreen
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.ImageView
@@ -76,6 +77,10 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_show)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            postponeEnterTransition()
+        }
 
         fetchIntentData()
 

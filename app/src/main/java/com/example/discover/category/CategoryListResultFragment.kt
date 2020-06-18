@@ -61,11 +61,6 @@ class CategoryListResultFragment : Fragment() {
             this.category = this@CategoryListResultFragment.category
         }
 
-        recyclerView.layoutAnimation = AnimationUtils.loadLayoutAnimation(
-            context?.applicationContext,
-            R.anim.recycler_dropdown
-        )
-
         recyclerView.adapter = adapter
         onCategoryAdapterCreatedListener?.onCategoryAdapterCreated(category, this)
         return rootView
@@ -75,14 +70,12 @@ class CategoryListResultFragment : Fragment() {
         adapter?.setMovieSectionList(results)
         if (position != -1)
             restoreElementPosition(position)
-//        animateRecyclerLayoutChange()
     }
 
     fun setShows(results: List<ShowPreview>, position: Int = -1) {
         adapter?.setTvSectionList(results)
         if (position != -1)
             restoreElementPosition(position)
-//        animateRecyclerLayoutChange()
     }
 
     override fun onAttach(context: Context) {
@@ -98,23 +91,4 @@ class CategoryListResultFragment : Fragment() {
     private fun restoreElementPosition(position: Int) {
         recyclerView.scrollToPosition(position)
     }
-
-//    private fun animateRecyclerLayoutChange() {
-//        val fadeOut: Animation = TranslateAnimation(1.0f, 0.0f)
-//        fadeOut.interpolator = DecelerateInterpolator()
-//        fadeOut.duration = 400
-//        fadeOut.setAnimationListener(object : Animation.AnimationListener {
-//            override fun onAnimationStart(animation: Animation) {}
-//            override fun onAnimationRepeat(animation: Animation) {}
-//            override fun onAnimationEnd(animation: Animation) {
-//                (recyclerView.layoutManager as GridLayoutManager).spanCount = 1
-//                (recyclerView.layoutManager as GridLayoutManager).requestLayout()
-//                val fadeIn: Animation = AlphaAnimation(0f, 1f)
-//                fadeIn.interpolator = AccelerateInterpolator()
-//                fadeIn.duration = 400
-//                recyclerView.startAnimation(fadeIn)
-//            }
-//        })
-//        recyclerView.startAnimation(fadeOut)
-//    }
 }

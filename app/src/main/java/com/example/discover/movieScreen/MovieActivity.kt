@@ -2,8 +2,8 @@ package com.example.discover.movieScreen
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -89,6 +89,10 @@ class MovieActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movie_detail)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            postponeEnterTransition()
+        }
 
         fetchIntentData()
         bindActivity(savedInstanceState)
@@ -578,4 +582,5 @@ class MovieActivity : AppCompatActivity(),
         })
         overridePendingTransition(R.anim.right_in, R.anim.left_out)
     }
+
 }

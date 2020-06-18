@@ -38,6 +38,7 @@
                     android:layout_width="160dp"
                     android:layout_height="240dp"
                     android:layout_gravity="center"
+                    android:transitionName="poster"
                     android:layout_marginTop="10dp" />
 
                 <com.google.android.material.tabs.TabLayout

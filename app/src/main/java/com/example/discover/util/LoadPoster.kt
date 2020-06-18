@@ -3,13 +3,12 @@ package com.example.discover.util
 import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Canvas
 import android.os.AsyncTask
+import android.os.Build
 import android.util.Log
+import android.view.ViewTreeObserver
 import android.widget.ImageView
-import androidx.core.content.ContextCompat
 import com.example.discover.DiscoverApplication
-import com.example.discover.R
 import java.io.BufferedInputStream
 import java.io.InputStream
 import java.lang.ref.WeakReference
@@ -34,7 +33,7 @@ class LoadPoster(
             if (bitmap != null)
                 return bitmap
 
-            val url = "https://image.tmdb.org/t/p/w185/$fileName"
+            val url = "https://image.tmdb.org/t/p/w154/$fileName"
             try {
                 inputStream = URL(url).openStream()
                 bitmap = inputStream?.let { createScaledBitmapFromStream(inputStream) }
@@ -55,6 +54,16 @@ class LoadPoster(
         if (result != null) {
             imageView.get()?.scaleType = ImageView.ScaleType.CENTER_CROP
             imageView.get()?.setImageBitmap(result)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                imageView.get()?.viewTreeObserver?.addOnPreDrawListener(object :
+                    ViewTreeObserver.OnPreDrawListener {
+                    override fun onPreDraw(): Boolean {
+                        imageView.get()?.viewTreeObserver?.removeOnPreDrawListener(this)
+                        activity.get()?.startPostponedEnterTransition()
+                        return true
+                    }
+                })
+            }
         }
     }
 
@@ -97,7 +106,9 @@ class LoadPoster(
     private fun getBitmapFromDiskCache(key: String, application: DiscoverApplication): Bitmap? {
         if (application.containsKey(key)) {
             return application.getBitmap(key).apply {
-                application.memoryCache.put(key, this!!)
+                this?.let {
+                    application.memoryCache.put(key, this)
+                }
             }
         }
         return null
@@ -105,11 +116,10 @@ class LoadPoster(
 
     private fun checkInMemory(key: String, application: DiscoverApplication): Bitmap? {
         val image = fetchMemoryCacheImage(key, application)
-        if (image != null)
-        {
+        if (image != null) {
+            Log.d("read from memory", "")
             return image
         }
-
         return getBitmapFromDiskCache(key, application)
     }
 
@@ -129,13 +139,13 @@ class LoadPoster(
         }
     }
 
-    private fun setPlaceHolder(): Bitmap {
-        val drawable = ContextCompat.getDrawable(activity.get()!!, R.drawable.ic_media_placeholder)
-        val bitmap = Bitmap.createBitmap(80, 100, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable!!.setBounds(10, 20, canvas.width - 10, canvas.height - 20)
-        drawable.draw(canvas)
-        return bitmap
-    }
+//    private fun setPlaceHolder(): Bitmap {
+//        val drawable = ContextCompat.getDrawable(activity.get()!!, R.drawable.ic_media_placeholder)
+//        val bitmap = Bitmap.createBitmap(80, 100, Bitmap.Config.ARGB_8888)
+//        val canvas = Canvas(bitmap)
+//        drawable!!.setBounds(10, 20, canvas.width - 10, canvas.height - 20)
+//        drawable.draw(canvas)
+//        return bitmap
+//    }
 
 }

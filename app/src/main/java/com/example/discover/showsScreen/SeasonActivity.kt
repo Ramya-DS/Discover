@@ -1,5 +1,6 @@
 package com.example.discover.showsScreen
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -73,7 +74,7 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
 
         val toolbar: MaterialToolbar = findViewById(R.id.season_toolbar)
         toolbar.setNavigationOnClickListener {
-            finish()
+            supportFinishAfterTransition()
         }
 
         coordinatorLayout = findViewById(R.id.season_coordinator)
@@ -244,5 +245,10 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
             viewModel.episodePosition =
                 (this as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        supportFinishAfterTransition()
     }
 }

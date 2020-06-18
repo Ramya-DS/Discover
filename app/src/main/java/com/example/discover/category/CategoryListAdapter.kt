@@ -5,10 +5,10 @@ import android.content.Intent
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import android.view.animation.AlphaAnimation
 import android.widget.ImageView
 import android.widget.ProgressBar
@@ -115,7 +115,7 @@ class CategoryListAdapter(
                 intent.putExtra("isMovie", isMovie)
                 intent.putExtra("section", category)
                 activity.get()!!.startActivity(intent)
-                activity.get()?.overridePendingTransition(R.anim.right_in,R.anim.left_out)
+                activity.get()?.overridePendingTransition(R.anim.right_in, R.anim.left_out)
             }
         }
 
@@ -166,7 +166,7 @@ class CategoryListAdapter(
 
             }
         } else onBindMedia(holder as MediaWithTitleViewHolder, mediaList[position])
-        setFadeAnimation(holder.itemView)
+//        setFadeAnimation(holder.itemView)
 //        animation(holder.itemView, holder.adapterPosition)
     }
 
@@ -197,7 +197,6 @@ class CategoryListAdapter(
                 newList
             )
         )
-        Log.d("size", "fillMedia${newList.size}")
         result.dispatchUpdatesTo(this)
         mediaList.clear()
         movieList.addAll(newList)
@@ -234,6 +233,7 @@ class CategoryListAdapter(
     }
 
     private fun setPosterImage(holder: MediaWithTitleViewHolder, posterPath: String?) {
+        holder.posterImage.scaleType = ImageView.ScaleType.CENTER_INSIDE
         holder.posterImage.setImageDrawable(
             ContextCompat.getDrawable(
                 holder.itemView.context,
@@ -246,7 +246,6 @@ class CategoryListAdapter(
     }
 
     private fun onBindMovie(holder: MediaWithTitleViewHolder, movie: MoviePreview) {
-        Log.d("genre", movie.toString())
         holder.id = movie.id
         holder.isMovie = true
         bindDetails(holder, movie.poster_path, movie.title, movie.vote_average)

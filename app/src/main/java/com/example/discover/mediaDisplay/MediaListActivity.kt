@@ -1,5 +1,6 @@
 package com.example.discover.mediaDisplay
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -32,6 +33,10 @@ class MediaListActivity : AppCompatActivity(), OnAdapterCreatedListener, OnNetwo
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_list)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            postponeEnterTransition()
+        }
 
         viewModel = ViewModelProvider(
             this,

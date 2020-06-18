@@ -35,7 +35,6 @@ import java.lang.ref.WeakReference
 
 class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
 
-    //    private lateinit var appBarLayout: AppBarLayout
     private lateinit var collapsingToolbarLayout: CollapsingToolbarLayout
     private lateinit var toolbar: MaterialToolbar
     private lateinit var searchView: SearchView
@@ -51,9 +50,9 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
 
         bindActivity()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            toolbar.outlineProvider = null
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            toolbar.outlineProvider = null
+//        }
 
         searchInitiation()
         discoverFilter()
@@ -63,7 +62,6 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
     }
 
     private fun bindActivity() {
-//        appBarLayout = findViewById(R.id.main_appbar)
         collapsingToolbarLayout = findViewById(R.id.main_collapsing_layout)
         toolbar = findViewById(R.id.main_toolbar)
         setSupportActionBar(toolbar)
@@ -71,6 +69,7 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
         searchView.clearFocus()
         filterText = findViewById(R.id.main_discover_filter)
         movieCard = findViewById(R.id.main_movies_image)
+
         movieCard.setOnClickListener {
             startActivity(Intent(this, MediaCategoryActivity::class.java).apply {
                 putExtra("isMovie", true)

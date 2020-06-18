@@ -1,5 +1,6 @@
 package com.example.discover.genreScreen
 
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -41,6 +42,10 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_genre_media)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            postponeEnterTransition()
+        }
 
         displayLoadingFragment()
 

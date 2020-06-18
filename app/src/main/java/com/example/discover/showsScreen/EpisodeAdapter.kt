@@ -75,12 +75,11 @@ class EpisodeAdapter(
         holder.name.text = episode.name
         holder.overview.text = episode.overview
         holder.rating.text = " ${episode.vote_average}  "
-        holder.airDate.text = episode.air_date
+        holder.airDate.text = "  ${episode.air_date}"
     }
 
     private fun getWidth(): Int? {
         val displayMetrics: DisplayMetrics? = activity.get()?.resources?.displayMetrics
-        Log.d("density", "${displayMetrics?.density}")
         return displayMetrics?.widthPixels
     }
 
@@ -90,10 +89,8 @@ class EpisodeAdapter(
         val clickableSpan = object : ClickableSpan() {
             override fun onClick(widget: View) {
                 if (text.contains("crew", true)) {
-                    Log.d("position", "$position")
                     onCreditSelectedListener.onCrewSelected(episodes[position].crew)
                 } else {
-                    Log.d("position", "$position")
                     onCreditSelectedListener.onCastSelected(episodes[position].guest_stars)
                 }
             }

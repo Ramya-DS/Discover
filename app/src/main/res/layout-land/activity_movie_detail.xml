@@ -84,7 +84,7 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:scaleType="fitXY"
-                                    android:transitionName="poster" />
+                                    android:transitionName="posterImage" />
 
                             </com.google.android.material.card.MaterialCardView>
 

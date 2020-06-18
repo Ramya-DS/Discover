@@ -1,8 +1,8 @@
 package com.example.discover.category
 
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -47,6 +47,9 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_category)
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            postponeEnterTransition()
+        }
         getIntentData()
 
         viewModel = ViewModelProvider(

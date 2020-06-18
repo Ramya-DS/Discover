@@ -259,15 +259,13 @@ class DiscoverApplication : Application() {
         return list
     }
 
-    private fun insertAllGenres(list: List<Genres>, isMovie: Boolean) =
-        runBlocking {
-            withContext(Dispatchers.IO) {
-                for (i in list)
-                    i.isMovie = isMovie
-                genreDao.insertAllGenres(list)
+    private fun insertAllGenres(list: List<Genres>, isMovie: Boolean) = Thread {
+        for (i in list)
+            i.isMovie = isMovie
+        genreDao.insertAllGenres(list)
 
-            }
-        }
+    }.start()
+
 
     private fun fetchErrorMessage(error: ResponseBody): String {
         val reader: BufferedReader?
@@ -316,11 +314,9 @@ class DiscoverApplication : Application() {
         return languages
     }
 
-    private fun insertAllLanguages(list: List<Language>) = runBlocking {
-        withContext(Dispatchers.IO) {
-            languageDao.insertAllLanguages(list)
-        }
-    }
+    private fun insertAllLanguages(list: List<Language>) = Thread {
+        languageDao.insertAllLanguages(list)
+    }.start()
 
     fun checkConnectivity(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

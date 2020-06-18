@@ -21,6 +21,7 @@
                 android:layout_width="120dp"
                 android:layout_height="180dp"
                 android:elevation="5dp"
+                android:backgroundTint="@android:color/transparent"
                 app:cardCornerRadius="20dp">
 
                 <ImageView
@@ -41,10 +42,15 @@
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/media_layout_title"
+                    android:layout_width="0dp"
                     style="@style/textViewStyle"
+                    android:maxLines="3"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+                    android:layout_marginEnd="5dp"
+                    android:textStyle="bold"
                     app:layout_constraintBottom_toTopOf="@id/media_layout_release_date"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.0"
+                    app:layout_constraintEnd_toStartOf="@id/media_rating"
+                    app:layout_constraintHorizontal_bias="1.0"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -77,38 +83,39 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/media_layout_language" />
 
+                <RelativeLayout
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:padding="4dp"
+                    android:id="@+id/media_rating"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/media_layout_title"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="1.0"
+                    app:layout_constraintVertical_bias="0.0"
+                    android:background="@drawable/voting_background">
+
+                    <ProgressBar
+                        android:id="@+id/media_layout_voting_bar"
+                        style="?android:progressBarStyleHorizontal"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:progressDrawable="@drawable/progress_bar_circle" />
+
+                    <TextView
+                        android:id="@+id/media_layout_voting_average"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:gravity="center"
+                        android:text="100"
+                        android:textColor="@android:color/white"
+                        android:textSize="10sp" />
+
+                </RelativeLayout>
+
             </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
-
-
-    <RelativeLayout
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="end"
-        android:layout_margin="15dp"
-        android:alpha="0.9"
-        android:padding="4dp"
-        android:background="@drawable/voting_background"
-        android:elevation="30dp">
-
-        <ProgressBar
-            android:id="@+id/media_layout_voting_bar"
-            style="?android:progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:progressDrawable="@drawable/progress_bar_circle" />
-
-        <TextView
-            android:id="@+id/media_layout_voting_average"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="100"
-            android:textColor="@android:color/white"
-            android:textSize="10sp" />
-
-    </RelativeLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
