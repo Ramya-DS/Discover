@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/movie_detail_coordinator"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/main_background">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/movie_detail_app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.CollapsingToolbarLayout
+            android:id="@+id/movie_detail_collapsing"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:background="@android:color/transparent"
+            app:collapsedTitleTextAppearance="@style/collapsedTitleAppearance"
+            app:contentScrim="@color/colorPrimary"
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
+
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fitsSystemWindows="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="560dp"
+                    android:orientation="vertical">
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp">
+
+                        <androidx.viewpager2.widget.ViewPager2
+                            android:id="@+id/movie_detail_backdrop"
+                            android:layout_width="match_parent"
+                            android:layout_height="360dp"
+                            android:scaleType="centerCrop" />
+
+                        <com.google.android.material.tabs.TabLayout
+                            android:id="@+id/movie_detail_tab_layout"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentBottom="true"
+                            android:layout_centerHorizontal="true"
+                            android:background="@android:color/transparent"
+                            app:tabBackground="@drawable/tab_selector"
+                            app:tabGravity="center"
+                            app:tabIndicatorHeight="0dp" />
+
+                    </RelativeLayout>
+
+                    <FrameLayout
+                        android:id="@+id/movie_detail_frameLayout_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:background="@android:color/transparent"
+                        android:orientation="vertical">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fitsSystemWindows="true">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/movie_detail_poster_card"
+                                android:layout_width="100dp"
+                                android:layout_height="150dp"
+                                android:layout_margin="10dp"
+                                app:cardCornerRadius="10dp"
+                                app:cardElevation="3dp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent">
+
+                                <ImageView
+                                    android:id="@+id/movie_detail_poster"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:scaleType="fitXY"
+                                    android:transitionName="poster" />
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <TextView
+                                android:id="@+id/movie_detail_rating"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_margin="10dp"
+                                android:background="@android:color/black"
+                                android:drawableEnd="@drawable/ic_tmdb"
+                                android:padding="7dp"
+                                android:textColor="@android:color/white"
+                                android:textStyle="bold"
+                                app:layout_constraintBottom_toBottomOf="@id/movie_detail_poster_card"
+                                app:layout_constraintEnd_toEndOf="parent" />
+
+                            <ImageButton
+                                android:id="@+id/movie_detail_more_info"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:layout_marginEnd="16dp"
+                                android:background="@android:color/transparent"
+                                android:src="@drawable/ic_info_white"
+                                android:tint="@color/colorPrimaryDark"
+                                app:layout_constraintBottom_toTopOf="@id/movie_detail_title"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintHorizontal_bias="1.0"
+                                app:layout_constraintStart_toEndOf="@id/movie_detail_title"
+                                app:layout_constraintTop_toTopOf="@id/movie_detail_poster_card"
+                                app:layout_constraintVertical_bias="0.0" />
+
+                            <TextView
+                                android:id="@+id/movie_detail_title"
+                                style="@style/TextAppearance.MaterialComponents.Headline6"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:textAllCaps="true"
+                                android:textColor="@color/white"
+                                app:layout_constraintBottom_toTopOf="@id/movie_detail_tagline"
+                                app:layout_constraintEnd_toStartOf="@id/movie_detail_more_info"
+                                app:layout_constraintStart_toEndOf="@id/movie_detail_poster_card"
+                                app:layout_constraintTop_toTopOf="@id/movie_detail_poster_card"
+                                app:layout_constraintVertical_bias="0.0" />
+
+                            <TextView
+                                android:id="@+id/movie_detail_tagline"
+                                style="@style/TextAppearance.MaterialComponents.Subtitle2"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:textColor="@color/white"
+                                app:layout_constraintBottom_toTopOf="@id/movie_detail_runtime"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toEndOf="@id/movie_detail_poster_card"
+                                app:layout_constraintTop_toBottomOf="@id/movie_detail_title" />
+
+                            <TextView
+                                android:id="@+id/movie_detail_runtime"
+                                style="@style/TextAppearance.MaterialComponents.Subtitle2"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:textColor="@color/white"
+                                app:layout_constraintBottom_toTopOf="@id/movie_detail_status"
+                                app:layout_constraintHorizontal_bias="0.0"
+                                app:layout_constraintStart_toEndOf="@id/movie_detail_poster_card"
+                                app:layout_constraintTop_toBottomOf="@id/movie_detail_tagline"
+                                app:layout_constraintVertical_bias="0.0" />
+
+                            <TextView
+                                android:id="@+id/movie_detail_status"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:layout_marginEnd="5dp"
+                                android:textColor="@color/white"
+                                app:layout_constraintBottom_toBottomOf="@id/movie_detail_poster_card"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintHorizontal_bias="0.0"
+                                app:layout_constraintStart_toEndOf="@id/movie_detail_poster_card"
+                                app:layout_constraintTop_toBottomOf="@id/movie_detail_runtime" />
+
+
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </FrameLayout>
+
+                </LinearLayout>
+
+            </ScrollView>
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/movie_detail_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
+                app:layout_collapseMode="pin"
+                app:navigationIcon="@drawable/ic_back"
+                app:titleTextColor="@color/white" />
+
+        </com.google.android.material.appbar.CollapsingToolbarLayout>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        app:behavior_overlapTop="30dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/subHeadingText"
+                    android:layout_marginBottom="10dp"
+                    android:text="@string/overview" />
+
+                <com.example.discover.util.ExpandableTextView
+                    android:id="@+id/movie_detail_overview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/movie_detail_cast_heading"
+                    style="@style/subHeadingText"
+                    android:text="@string/cast" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/movie_detail_cast"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="5dp" />
+
+                <TextView
+                    android:id="@+id/movie_detail_crew_heading"
+                    style="@style/subHeadingText"
+                    android:text="@string/crew" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/movie_detail_crew"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="5dp" />
+
+                <TextView
+                    android:id="@+id/movie_detail_genre_heading"
+                    style="@style/subHeadingText"
+                    android:text="@string/genres" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/movie_detail_genresList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/movie_detail_keywords_heading"
+                    style="@style/subHeadingText"
+                    android:text="@string/keywords" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/movie_detail_keywordsList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/movie_detail_recommendations_heading"
+                    style="@style/subHeadingText"
+                    android:text="@string/recommendations" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/movie_detail_recommendations"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/movie_detail_similar_heading"
+                    style="@style/subHeadingText"
+                    android:text="@string/similar" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/movie_detail_similarMovies"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginBottom="10dp" />
+
+                <TextView
+                    android:id="@+id/movie_detail_review_heading"
+                    style="@style/subHeadingText"
+                    android:layout_marginBottom="5dp"
+                    android:text="@string/Reviews" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/movie_detail_reviews"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="10dp" />
+
+            </LinearLayout>
+
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

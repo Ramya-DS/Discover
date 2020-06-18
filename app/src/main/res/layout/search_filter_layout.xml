@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginStart="16dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_margin="5dp"
+        android:gravity="bottom"
+        android:text="@string/choose_a_search_filter"
+        android:textColor="#000000"
+        android:textSize="16sp" />
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/search_multiFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:onClick="onFilterClick"
+            android:text="@string/multi_search" />
+
+        <RadioButton
+            android:id="@+id/search_movieFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onFilterClick"
+            android:text="@string/movies" />
+
+        <RadioButton
+            android:id="@+id/search_showsFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="onFilterClick"
+            android:text="@string/tv_shows" />
+
+    </RadioGroup>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/search_filterButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/filter" />
+
+</LinearLayout>

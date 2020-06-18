@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".category.MediaCategoryActivity">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/category_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        android:background="@drawable/main_background"
+        app:navigationIcon="@drawable/ic_back"
+        app:titleTextColor="@android:color/white" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/media_category_swipe_refresh"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:id="@+id/media_category_network_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:elevation="5dp"/>
+
+                <TextView
+                    android:id="@+id/category_title_1"
+                    style="@style/subHeadingText" />
+
+                <FrameLayout
+                    android:id="@+id/category_container_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_marginStart="10dp" />
+
+                <TextView
+                    android:id="@+id/category_title_2"
+                    style="@style/subHeadingText" />
+
+                <FrameLayout
+                    android:id="@+id/category_container_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_marginStart="10dp" />
+
+                <TextView
+                    android:id="@+id/category_title_3"
+                    style="@style/subHeadingText" />
+
+                <FrameLayout
+                    android:id="@+id/category_container_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_marginStart="10dp" />
+
+                <TextView
+                    android:id="@+id/category_title_4"
+                    style="@style/subHeadingText" />
+
+                <FrameLayout
+                    android:id="@+id/category_container_4"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_marginStart="10dp" />
+
+                <TextView
+                    android:id="@+id/category_title_5"
+                    style="@style/subHeadingText" />
+
+                <FrameLayout
+                    android:id="@+id/category_container_5"
+                    android:layout_width="match_parent"
+                    android:layout_height="250dp"
+                    android:layout_marginStart="10dp" />
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</LinearLayout>

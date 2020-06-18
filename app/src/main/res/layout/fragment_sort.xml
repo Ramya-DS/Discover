@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    tools:context=".filterScreen.ui.SortFragment">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:text="Sort By"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+            android:textColor="@android:color/black" />
+
+        <RadioGroup
+            android:id="@+id/sort_group"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="16dp">
+
+            <RadioButton
+                android:id="@+id/sort_popularity_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Popularity Descending" />
+
+            <RadioButton
+                android:id="@+id/sort_popularity_asc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Popularity Ascending" />
+
+            <RadioButton
+                android:id="@+id/sort_release_date_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Release Date Descending" />
+
+            <RadioButton
+                android:id="@+id/sort_release_date_asc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Release Date Ascending" />
+
+            <RadioButton
+                android:id="@+id/sort_vote_average_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Vote Average Descending" />
+
+            <RadioButton
+                android:id="@+id/sort_vote_average_asc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Vote Average Ascending" />
+
+        </RadioGroup>
+
+    </LinearLayout>
+
+</LinearLayout>
+

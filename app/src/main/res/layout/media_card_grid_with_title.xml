@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_margin="3dp"
+    android:orientation="vertical"
+    card_view:cardCornerRadius="4dp"
+    card_view:cardElevation="5dp">
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="116dp"
+        android:layout_height="216dp"
+        android:background="@drawable/main_background">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/media_card_grid_poster"
+                android:layout_width="match_parent"
+                android:layout_height="174dp"
+                android:scaleType="centerInside"
+                android:transitionName="poster"
+                android:src="@drawable/ic_media_placeholder" />
+
+            <TextView
+                android:id="@+id/media_card_grid_title"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:layout_gravity="center"
+                android:layout_margin="2dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="end"
+            android:layout_margin="5dp"
+            android:alpha="0.9"
+            android:background="@drawable/voting_background"
+            android:elevation="30dp">
+
+            <ProgressBar
+                android:id="@+id/media_card_grid_voting_bar"
+                style="?android:progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:progressDrawable="@drawable/progress_bar_circle" />
+
+            <TextView
+                android:id="@+id/media_card_grid_voting_average"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="100"
+                android:textColor="@android:color/white"
+                android:textSize="10sp" />
+
+        </RelativeLayout>
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+</androidx.cardview.widget.CardView>

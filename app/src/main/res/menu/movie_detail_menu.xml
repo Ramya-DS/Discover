@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/info_menu"
+        android:icon="@drawable/ic_info_white"
+        android:title="Info"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/externalLink"
+        android:icon="@drawable/ic_link"
+        android:title="External Links"
+        app:showAsAction="always" />
+
+</menu>

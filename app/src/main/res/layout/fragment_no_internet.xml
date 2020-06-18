@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    tools:context=".util.NoInternetFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="10dp">
+
+        <ImageView
+            android:id="@+id/no_internet_symbol"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:src="@drawable/ic_no_internet" />
+
+        <TextView
+            android:id="@+id/no_internet_offline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+
+            android:layout_toRightOf="@id/no_internet_symbol"
+            android:text="Offline"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6" />
+
+        <TextView
+            android:id="@+id/no_internet_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/no_internet_offline"
+            android:layout_marginStart="10dp"
+            android:layout_toRightOf="@id/no_internet_symbol"
+            android:text="Your network is unavailable. Check your data or wifi connection."
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
+    </RelativeLayout>
+
+</FrameLayout>

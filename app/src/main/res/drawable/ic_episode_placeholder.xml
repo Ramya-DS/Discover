@@ -1,0 +1,17 @@
+<vector android:height="170dp" android:viewportHeight="512"
+    android:viewportWidth="512" android:width="200dp" xmlns:android="http://schemas.android.com/apk/res/android">
+    <path android:fillColor="#d0dbef" android:fillType="evenOdd" android:pathData="m474.5,94.25h-437v323.5h437zM194.033,335.636v-189.272l153.933,94.636z"/>
+    <path android:fillColor="#ed9b88" android:fillType="evenOdd" android:pathData="m347.966,241 l-153.933,-94.636v189.272z"/>
+    <path android:fillColor="#a7eed4" android:fillType="evenOdd" android:pathData="m37.5,417.75v-323.5h437v323.5zM489.5,64.25h-467l-15,15.172v353.156l15,15.172h467l14.999,-15.172v-353.156z"/>
+    <path android:fillColor="#a0b6de" android:fillType="evenOdd" android:pathData="m37.5,94.25h30v323.5h-30z"/>
+    <path android:fillColor="#e76c4c" android:fillType="evenOdd" android:pathData="m224.033,164.808 l-30,-18.444v189.272l30,-18.444z"/>
+    <path android:fillColor="#fff" android:pathData="m286.76,247.392 l-12.783,-7.85 7.85,-12.783 12.783,7.85zM261.187,231.69 L220.103,206.411 227.963,193.636 269.048,218.915z"/>
+    <path android:fillColor="#fff" android:pathData="m75,154.25h-15v-37.5h52.5v15h-37.5zM142.5,131.75h-15v-15h15z"/>
+    <path android:fillColor="#FF000000" android:pathData="m492.632,56.75h-473.264l-19.368,19.591v303.737h15v-297.575l10.631,-10.753h460.737l10.632,10.754v346.992l-10.632,10.754h-460.737l-10.631,-10.753v-34.418h-15v40.58l19.368,19.591h473.264l19.368,-19.591v-359.318z"/>
+    <path android:fillColor="#FF000000" android:pathData="m482,131.749v-44.999h-452v338.5h452v-278.5h-15v263.5h-422v-308.5h422v29.999z"/>
+    <path android:fillColor="#FF000000" android:pathData="m399.5,380.25h15v15h-15z"/>
+    <path android:fillColor="#FF000000" android:pathData="m429.5,380.25h15v15h-15z"/>
+    <path android:fillColor="#FF000000" android:pathData="m67.5,380.25h15v15h-15z"/>
+    <path android:fillColor="#FF000000" android:pathData="m97.5,380.25h287v15h-287z"/>
+    <path android:fillColor="#FF000000" android:pathData="m186.534,349.051 l175.753,-108.051 -175.753,-108.051zM201.534,159.779 L333.646,241 201.533,322.221v-162.442z"/>
+</vector>
