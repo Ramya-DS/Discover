@@ -2,7 +2,6 @@ package com.example.discover.mediaDisplay
 
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
@@ -23,9 +22,9 @@ import com.google.android.material.appbar.MaterialToolbar
 class MediaListActivity : AppCompatActivity(), OnAdapterCreatedListener, OnNetworkLostListener {
 
     var isMovie = true
-    lateinit var section: String
+    private lateinit var section: String
 
-    private var page = 1
+//    private var page = 1
 
     private var resultFragment: GenreMediaResultFragment? = null
     private lateinit var viewModel: CategoryViewModel
@@ -55,7 +54,7 @@ class MediaListActivity : AppCompatActivity(), OnAdapterCreatedListener, OnNetwo
 
         toolbar.setNavigationOnClickListener {
             finish()
-            overridePendingTransition(R.anim.left_in,R.anim.right_out)
+            overridePendingTransition(R.anim.left_in, R.anim.right_out)
         }
     }
 
@@ -164,8 +163,8 @@ class MediaListActivity : AppCompatActivity(), OnAdapterCreatedListener, OnNetwo
     }
 
     fun fetchMore() {
-        page++
-        resultRequest(page)
+        viewModel.page++
+        resultRequest(viewModel.page)
         resultFragment?.loading = true
     }
 
@@ -222,7 +221,12 @@ class MediaListActivity : AppCompatActivity(), OnAdapterCreatedListener, OnNetwo
 
     override fun onBackPressed() {
         super.onBackPressed()
-        overridePendingTransition(R.anim.left_in,R.anim.right_out)
+        overridePendingTransition(R.anim.left_in, R.anim.right_out)
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+//        viewModel.networkFragment =
+//            supportFragmentManager.findFragmentByTag("media_list_network") != null
+    }
 }

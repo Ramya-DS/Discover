@@ -1,16 +1,19 @@
 package com.example.discover.datamodel.tvshow.detail
 
+import android.os.Parcelable
 import androidx.room.Entity
 import androidx.room.Ignore
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 @Entity(tableName = "Season")
 data class Season(
 
     @SerializedName("air_date")
-    var air_date: String,
+    var air_date: String?,
 
     @SerializedName("episode_count")
     var episode_count: Int,
@@ -23,7 +26,7 @@ data class Season(
     var name: String,
 
     @SerializedName("overview")
-    var overview: String,
+    var overview: String?,
 
     @SerializedName("poster_path")
     var poster_path: String?,
@@ -41,6 +44,6 @@ data class Season(
     var episodes: List<Episode>,
 
     var show_id: Int
-) {
+) : Parcelable {
     constructor() : this("", 0, 0, "", "", null, 0, emptyList(), 0)
 }

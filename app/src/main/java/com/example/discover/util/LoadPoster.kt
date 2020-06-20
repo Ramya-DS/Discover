@@ -24,17 +24,19 @@ class LoadPoster(
     override fun doInBackground(vararg params: String?): Bitmap? {
         val fileName = params[0]
         val inputStream: InputStream?
-        val app = (activity.get()?.application as DiscoverApplication)
+
         var bitmap: Bitmap? = null
 
         if (fileName != null) {
-            val key = createKey(fileName)
-            bitmap = checkInMemory(key, app)
-            if (bitmap != null)
-                return bitmap
-
-            val url = "https://image.tmdb.org/t/p/w154/$fileName"
             try {
+                val app = (activity.get()?.application as DiscoverApplication)
+                val key = createKey(fileName)
+                bitmap = checkInMemory(key, app)
+                if (bitmap != null)
+                    return bitmap
+
+                val url = "https://image.tmdb.org/t/p/w154/$fileName"
+
                 inputStream = URL(url).openStream()
                 bitmap = inputStream?.let { createScaledBitmapFromStream(inputStream) }
 
@@ -105,19 +107,20 @@ class LoadPoster(
 
     private fun getBitmapFromDiskCache(key: String, application: DiscoverApplication): Bitmap? {
         if (application.containsKey(key)) {
-            return application.getBitmap(key).apply {
-                this?.let {
-                    application.memoryCache.put(key, this)
-                }
-            }
+            val bitmap = application.getBitmap(key)
+            Log.d("disk", "$bitmap")
+            application.memoryCache.put(key, bitmap!!)
+            Log.d("memory", "written")
+            return bitmap
         }
+
         return null
     }
 
     private fun checkInMemory(key: String, application: DiscoverApplication): Bitmap? {
         val image = fetchMemoryCacheImage(key, application)
         if (image != null) {
-            Log.d("read from memory", "")
+            Log.d("memory", "read")
             return image
         }
         return getBitmapFromDiskCache(key, application)
@@ -138,14 +141,4 @@ class LoadPoster(
             }
         }
     }
-
-//    private fun setPlaceHolder(): Bitmap {
-//        val drawable = ContextCompat.getDrawable(activity.get()!!, R.drawable.ic_media_placeholder)
-//        val bitmap = Bitmap.createBitmap(80, 100, Bitmap.Config.ARGB_8888)
-//        val canvas = Canvas(bitmap)
-//        drawable!!.setBounds(10, 20, canvas.width - 10, canvas.height - 20)
-//        drawable.draw(canvas)
-//        return bitmap
-//    }
-
 }

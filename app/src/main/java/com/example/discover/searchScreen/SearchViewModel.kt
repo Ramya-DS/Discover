@@ -63,7 +63,6 @@ class SearchViewModel(private val mApplication: Application) : AndroidViewModel(
         val call = getSearchApiCall().movieSearch(queryMap)
         call.enqueue(object : Callback<MoviesList> {
             override fun onFailure(call: Call<MoviesList>, t: Throwable) {
-                Log.d("SearchActivity", "Failure ${t.message}")
                 onNetworkLostListener?.onNetworkLostFragment()
             }
 
@@ -72,7 +71,7 @@ class SearchViewModel(private val mApplication: Application) : AndroidViewModel(
                     val movieResult = response.body()!!
                     result.value = movieResult.results
                 } else
-                    Log.d("Search", "Error" + fetchErrorMessage(response.errorBody()!!))
+                    Log.d("Search", "Error" + (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!))
             }
         })
         return result
@@ -83,7 +82,6 @@ class SearchViewModel(private val mApplication: Application) : AndroidViewModel(
         val call = getSearchApiCall().showsSearch(queryMap)
         call.enqueue(object : Callback<ShowsList> {
             override fun onFailure(call: Call<ShowsList>, t: Throwable) {
-                Log.d("SearchActivity", "Failure ${t.message}")
                 onNetworkLostListener?.onNetworkLostFragment()
             }
 
@@ -92,7 +90,7 @@ class SearchViewModel(private val mApplication: Application) : AndroidViewModel(
                     val tvResult = response.body()!!
                     result.value = tvResult.results
                 } else
-                    Log.d("Search", "Error" + fetchErrorMessage(response.errorBody()!!))
+                    Log.d("Search", "Error" + (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!))
             }
         })
 
@@ -105,7 +103,6 @@ class SearchViewModel(private val mApplication: Application) : AndroidViewModel(
         val call = getSearchApiCall().multiSearch(queryMap)
         call.enqueue(object : Callback<MultiSearchResult> {
             override fun onFailure(call: Call<MultiSearchResult>, t: Throwable) {
-                Log.d("SearchActivity", "Failure ${t.message}")
                 onNetworkLostListener?.onNetworkLostFragment()
             }
 
@@ -117,32 +114,11 @@ class SearchViewModel(private val mApplication: Application) : AndroidViewModel(
                     val multiSearchResult = response.body()!!
                     result.value = multiSearchResult.results
                 } else
-                    Log.d("Search", "Error" + fetchErrorMessage(response.errorBody()!!))
+                    Log.d("Search", "Error" + (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!))
             }
 
         })
         return result
-    }
-
-    fun fetchErrorMessage(error: ResponseBody): String {
-        val reader: BufferedReader?
-        val sb = StringBuilder()
-        try {
-            reader =
-                BufferedReader(InputStreamReader(error.byteStream()))
-            var line: String?
-            try {
-                while (reader.readLine().also { line = it } != null) {
-                    sb.append(line)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        return sb.toString()
     }
 
     private fun getSearchApiCall() = (mApplication as DiscoverApplication).searchApiCall

@@ -12,12 +12,11 @@
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/review_toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?actionBarSize"
-            android:background="@drawable/main_background"
-            app:layout_constraintTop_toTopOf="parent"
+            style="@style/ToolbarStyle"
             app:navigationIcon="@drawable/ic_back"
-            app:titleTextColor="@color/white"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:title="Review" />
 
         <ImageView
@@ -26,6 +25,7 @@
             android:layout_height="50dp"
             android:layout_marginStart="20dp"
             android:layout_marginBottom="20dp"
+            android:contentDescription="@string/icon_person"
             android:src="@drawable/ic_credit_placeholder"
             app:layout_constraintBottom_toTopOf="@id/review_link_icon"
             app:layout_constraintStart_toStartOf="parent"
@@ -46,6 +46,7 @@
             android:layout_marginStart="20dp"
             android:padding="5dp"
             android:src="@drawable/ic_link"
+            android:contentDescription="@string/review_link"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/review_author_icon" />
 

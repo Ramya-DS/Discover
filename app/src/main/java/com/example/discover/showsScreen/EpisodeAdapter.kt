@@ -60,8 +60,6 @@ class EpisodeAdapter(
         holder.mPosition = position
 
         if (episode.still_path != null) {
-            Toast.makeText(holder.itemView.context, "${episode.still_path}", Toast.LENGTH_SHORT)
-                .show()
             LoadBackdrop(
                 WeakReference(holder.stillPath),
                 activity
@@ -75,7 +73,7 @@ class EpisodeAdapter(
         holder.name.text = episode.name
         holder.overview.text = episode.overview
         holder.rating.text = " ${episode.vote_average}  "
-        holder.airDate.text = "  ${episode.air_date}"
+        holder.airDate.text = "  ${episode.air_date?:'-'}"
     }
 
     private fun getWidth(): Int? {

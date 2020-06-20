@@ -1,6 +1,5 @@
 package com.example.discover.firstScreen
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -64,13 +63,11 @@ class GenreAdapter(
     }
 
     fun setGenresList(list: List<Genres>) {
-        Log.d("GenresAdapter: Genre", list.toString())
         genres = list
         notifyDataSetChanged()
     }
 
     fun setKeywordList(list: List<Keyword>) {
-        Log.d("GenresAdapter: keyword", list.toString())
         keywords = list
         notifyDataSetChanged()
     }

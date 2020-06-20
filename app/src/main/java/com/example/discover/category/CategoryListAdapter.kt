@@ -8,12 +8,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.view.animation.AlphaAnimation
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
@@ -48,7 +46,8 @@ class CategoryListAdapter(
 
     inner class MediaWithTitleViewHolder(mediaView: View) : RecyclerView.ViewHolder(mediaView),
         View.OnClickListener {
-        var id: Int = 0
+        var mPosition: Int = 0
+        var type = 1
         var isMovie = true
         val posterImage: ImageView = mediaView.findViewById(R.id.media_card_grid_poster)
         val title: TextView = mediaView.findViewById(R.id.media_card_grid_title)
@@ -66,6 +65,18 @@ class CategoryListAdapter(
                     onNetworkLostListener.onNetworkDialogDismiss()
                     val activityClass =
                         if (isMovie) MovieActivity::class.java else ShowActivity::class.java
+
+                    val media = when (type) {
+                        1 -> movieList[mPosition]
+                        2 -> tvList[mPosition]
+                        else -> if (isMovie)
+                            formatToMoviesPreview(mediaList[mPosition])
+                        else
+                            formatToShowsPreview(mediaList[mPosition])
+                    }
+
+                    val key = if (isMovie) "movie" else "show"
+
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                             this,
@@ -73,13 +84,11 @@ class CategoryListAdapter(
                             "posterImage"
                         )
                         startActivity(Intent(activity.get()!!, activityClass).apply {
-                            putExtra("id", id)
-                            putExtra("name", this@MediaWithTitleViewHolder.title.text)
+                            putExtra(key, media)
                         }, options.toBundle())
                     } else {
                         startActivity(Intent(activity.get()!!, activityClass).apply {
-                            putExtra("id", id)
-                            putExtra("name", this@MediaWithTitleViewHolder.title.text)
+                            putExtra(key, media)
                         })
                     }
                 } else {
@@ -100,7 +109,6 @@ class CategoryListAdapter(
         }
 
         override fun onClick(v: View?) {
-            Toast.makeText(activity.get()?.applicationContext, "More", Toast.LENGTH_LONG).show()
             isMovie?.let {
                 val intent = Intent(activity.get()!!, MediaListActivity::class.java)
                 if (isMovie) {
@@ -157,6 +165,7 @@ class CategoryListAdapter(
             } else {
                 if (getItemViewType(position) == 0) {
                     holder as MediaWithTitleViewHolder
+                    holder.mPosition = position
 
                     if (isMovie)
                         onBindMovie(holder, movieList[position])
@@ -165,14 +174,19 @@ class CategoryListAdapter(
                 }
 
             }
-        } else onBindMedia(holder as MediaWithTitleViewHolder, mediaList[position])
-//        setFadeAnimation(holder.itemView)
+        } else onBindMedia(
+            (holder as MediaWithTitleViewHolder).apply {
+                mPosition = position
+                type = 3
+            },
+            mediaList[position]
+        )
+        setFadeAnimation(holder.itemView)
 //        animation(holder.itemView, holder.adapterPosition)
     }
 
 
     private fun onBindMedia(holder: MediaWithTitleViewHolder, multiSearch: MultiSearch) {
-        holder.id = multiSearch.id
         when (multiSearch.media_type) {
             "movie" -> {
                 holder.isMovie = true
@@ -246,13 +260,13 @@ class CategoryListAdapter(
     }
 
     private fun onBindMovie(holder: MediaWithTitleViewHolder, movie: MoviePreview) {
-        holder.id = movie.id
+        holder.type = 1
         holder.isMovie = true
         bindDetails(holder, movie.poster_path, movie.title, movie.vote_average)
     }
 
     private fun onBindShow(holder: MediaWithTitleViewHolder, show: ShowPreview) {
-        holder.id = show.id
+        holder.type = 2
         holder.isMovie = false
         bindDetails(holder, show.poster_path, show.name, show.vote_average)
     }
@@ -265,8 +279,12 @@ class CategoryListAdapter(
     ) {
         setPosterImage(holder, posterPath)
         holder.title.text = title
-        holder.votingAverage.text = "${(rating * 10).toInt()}%"
-        holder.votingBar.progress = (rating * 10).toInt()
+        val mRating = (rating * 10).toInt()
+        if (mRating == 0)
+            holder.votingAverage.text = "NR"
+        else
+            holder.votingAverage.text = "$mRating %"
+        holder.votingBar.progress = mRating
     }
 
     private fun setFadeAnimation(view: View) {
@@ -455,6 +473,41 @@ class CategoryListAdapter(
                     onBindMedia(holder, it)
                 }
             }
+        }
+    }
+
+    private fun formatToShowsPreview(multiSearch: MultiSearch): ShowPreview {
+        multiSearch.apply {
+            return ShowPreview(
+                id,
+                name,
+                0,
+                vote_average,
+                first_air_date,
+                poster_path,
+                genre_ids,
+                original_language,
+                backdrop_path,
+                overview,
+                emptyList()
+            )
+        }
+    }
+
+    private fun formatToMoviesPreview(multiSearch: MultiSearch): MoviePreview {
+        multiSearch.apply {
+            return MoviePreview(
+                false,
+                backdrop_path,
+                genre_ids,
+                id,
+                original_language,
+                overview,
+                poster_path,
+                release_date,
+                title,
+                vote_average, 0
+            )
         }
     }
 }

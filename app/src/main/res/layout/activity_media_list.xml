@@ -7,21 +7,18 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/media_list_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?actionBarSize"
-        android:background="@drawable/main_background"
-        app:menu="@menu/genre_media_menu"
+        style="@style/ToolbarStyle"
         app:navigationIcon="@drawable/ic_back"
-        app:titleTextColor="@color/white" />
+        app:menu="@menu/genre_media_menu" />
 
     <FrameLayout
         android:id="@+id/media_list_network_container"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        style="@style/networkContainerStyle" />
 
     <FrameLayout
         android:id="@+id/media_list_result"
         android:layout_width="match_parent"
-        android:layout_height="fill_parent" />
+        android:layout_height="fill_parent"
+        android:nestedScrollingEnabled="false" />
 
 </LinearLayout>

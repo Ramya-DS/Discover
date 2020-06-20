@@ -22,14 +22,15 @@
                 android:id="@+id/media_card_grid_poster"
                 android:layout_width="match_parent"
                 android:layout_height="174dp"
+                android:contentDescription="@string/poster_image"
                 android:scaleType="centerInside"
-                android:transitionName="poster"
-                android:src="@drawable/ic_media_placeholder" />
+                android:src="@drawable/ic_media_placeholder"
+                android:transitionName="poster" />
 
             <TextView
                 android:id="@+id/media_card_grid_title"
                 android:layout_width="match_parent"
-                android:layout_height="fill_parent"
+                android:layout_height="0dp"
                 android:layout_gravity="center"
                 android:layout_margin="2dp"
                 android:layout_weight="1"
@@ -42,8 +43,8 @@
         </LinearLayout>
 
         <RelativeLayout
-            android:layout_width="35dp"
-            android:layout_height="35dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="end"
             android:layout_margin="5dp"
             android:alpha="0.9"
@@ -62,7 +63,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
-                android:text="100"
                 android:textColor="@android:color/white"
                 android:textSize="10sp" />
 

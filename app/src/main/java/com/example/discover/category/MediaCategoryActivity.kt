@@ -21,7 +21,6 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
     private var isMovie: Boolean = true
 
     companion object {
-        const val TAG = "MediaCategoryActivity"
         val MOVIE_CATEGORY = listOf(
             "Trending Today",
             "Now Playing in Theaters",
@@ -312,12 +311,20 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         for (i in containers) {
-            supportFragmentManager.findFragmentById(i.id)?.let {
-                viewModel.positions.put(
-                    i.id,
-                    (it as CategoryListResultFragment).lastElementPosition()
-                )
+            supportFragmentManager.findFragmentByTag("${i.id} RESULT")?.let {
+                if (it is CategoryListResultFragment)
+                    viewModel.positions.put(
+                        i.id,
+                        it.lastElementPosition()
+                    )
             }
+//            supportFragmentManager.findFragmentById(i.id)?.let {
+//                if (it is CategoryListResultFragment)
+//                    viewModel.positions.put(
+//                        i.id,
+//                        it.lastElementPosition()
+//                    )
+//            }
         }
     }
 

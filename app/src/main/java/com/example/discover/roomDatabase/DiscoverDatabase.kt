@@ -52,7 +52,7 @@ import com.example.discover.searchScreen.SuggestionsDao
         Review::class,
         RecommendationsCrossReference::class,
         SimilarCrossReference::class],
-    version = 7,
+    version = 9,
     exportSchema = false
 )
 abstract class DiscoverDatabase : RoomDatabase() {

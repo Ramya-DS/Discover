@@ -50,9 +50,9 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
 
         bindActivity()
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            toolbar.outlineProvider = null
-//        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            toolbar.outlineProvider = null
+        }
 
         searchInitiation()
         discoverFilter()
@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
     private fun searchInitiation() {
         searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
+
                 val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                     this@MainActivity,
                     searchView,

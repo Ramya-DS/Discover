@@ -3,7 +3,6 @@ package com.example.discover.genreScreen
 import android.app.Activity
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -73,7 +72,6 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
                 "show" -> false
                 else -> null
             }
-            Log.d("isLinear", "onCreate $isLinear $isMovie")
         }
     }
 
@@ -127,7 +125,6 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
                         }
                         onAdapterCreatedListener?.onAdapterCreated()
                         infiniteRecyclerView()
-//
                     })
                 })
             })
@@ -138,6 +135,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
     }
 
     fun setMovieResults(isLinear: Boolean, list: List<MoviePreview>) {
+        this.isLinear = isLinear
         if (isLinear) {
             linearAdapter?.setMovieList(list)
         } else
@@ -148,6 +146,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
     }
 
     fun setShowsResults(isLinear: Boolean, list: List<ShowPreview>) {
+        this.isLinear = isLinear
         if (isLinear) {
             linearAdapter?.setTvShowList(list)
         } else
@@ -157,6 +156,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
     }
 
     fun setMultiResults(isLinear: Boolean, list: List<MultiSearch>) {
+        this.isLinear = isLinear
         if (isLinear)
             linearAdapter?.setMediaList(list)
         else
@@ -166,6 +166,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
     }
 
     fun appendShowsResult(isLinear: Boolean, list: List<ShowPreview>) {
+        this.isLinear = isLinear
         if (isLinear)
             linearAdapter?.appendTvShowList(list)
         else
@@ -173,6 +174,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
     }
 
     fun appendMoviesResult(isLinear: Boolean, list: List<MoviePreview>) {
+        this.isLinear = isLinear
         if (isLinear)
             linearAdapter?.appendMovieList(list)
         else
@@ -180,6 +182,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
     }
 
     fun appendMediaResult(isLinear: Boolean, list: List<MultiSearch>) {
+        this.isLinear = isLinear
         if (isLinear)
             linearAdapter?.appendMediaList(list)
         else
@@ -193,7 +196,6 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
         }
 
         if (activity is MediaListActivity) {
-            Log.d("onAttach", "attached")
             onAdapterCreatedListener = context as OnAdapterCreatedListener
         }
 
@@ -210,7 +212,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
         var totalItemCount: Int
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy > 0) { //check for scroll down
+                if (dy > 0) {
                     val mLayoutManager = recyclerView.layoutManager as LinearLayoutManager
                     visibleItemCount = mLayoutManager.childCount
                     totalItemCount = mLayoutManager.itemCount
@@ -250,10 +252,11 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
             )
             recyclerView.adapter = gridAdapter
             recyclerView.scrollToPosition(position)
+            this.isLinear = false
 
         } else {
             position =
-                (recyclerView.layoutManager as LinearLayoutManager).findLastCompletelyVisibleItemPosition()
+                (recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()
             recyclerView.layoutManager = LinearLayoutManager(context)
             linearAdapter = MediaDetailAdapter(
                 WeakReference(activity as Activity),
@@ -278,6 +281,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
             )
             recyclerView.adapter = linearAdapter
             recyclerView.scrollToPosition(position)
+            this.isLinear = true
         }
     }
 
@@ -295,13 +299,6 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
             gridAdapter!!.getShows()
     }
 
-    fun getMedia(isLinear: Boolean): List<MultiSearch> {
-        return if (isLinear)
-            linearAdapter!!.getMedia()
-        else
-            gridAdapter!!.getMedia()
-    }
-
     override fun onNetworkLostFragment() {
 
     }
@@ -309,15 +306,18 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
     override fun onNetworkDialog() {
         if (parentFragment is FilterFragment) {
             (parentFragment as FilterFragment).onNetworkDialog()
-            return
         }
 
         if (activity is SearchActivity) {
             (activity as SearchActivity).onNetworkDialog()
-            return
         }
-        childFragmentManager.beginTransaction()
-            .replace(R.id.result_network_container, NoInternetFragment(), "no_connection").commit()
+
+        if (activity is GenreMediaActivity) {
+            (activity as GenreMediaActivity).onNetworkDialog()
+        }
+
+        if (activity is MediaListActivity)
+            (activity as MediaListActivity).onNetworkDialog()
     }
 
     override fun onNetworkDialogDismiss() {
@@ -330,9 +330,15 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
             (activity as SearchActivity).onNetworkDialogDismiss()
             return
         }
-        childFragmentManager.findFragmentByTag("no_connection")?.let {
-            childFragmentManager.beginTransaction().remove(it).commit()
+
+        if (activity is GenreMediaActivity) {
+            (activity as GenreMediaActivity).onNetworkDialogDismiss()
+            return
         }
+
+        if (activity is MediaListActivity)
+            (activity as MediaListActivity).onNetworkDialogDismiss()
+
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

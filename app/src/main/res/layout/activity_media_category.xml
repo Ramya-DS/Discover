@@ -9,18 +9,15 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/category_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?actionBarSize"
-        android:background="@drawable/main_background"
-        app:navigationIcon="@drawable/ic_back"
-        app:titleTextColor="@android:color/white" />
+        style="@style/ToolbarStyle"
+        app:navigationIcon="@drawable/ic_back" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/media_category_swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ScrollView
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -32,7 +29,7 @@
                 <FrameLayout
                     android:id="@+id/media_category_network_container"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" android:elevation="5dp"/>
+                    android:layout_height="wrap_content" />
 
                 <TextView
                     android:id="@+id/category_title_1"
@@ -40,9 +37,7 @@
 
                 <FrameLayout
                     android:id="@+id/category_container_1"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:layout_marginStart="10dp" />
+                    style="@style/categoryContainerStyle" />
 
                 <TextView
                     android:id="@+id/category_title_2"
@@ -50,9 +45,7 @@
 
                 <FrameLayout
                     android:id="@+id/category_container_2"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:layout_marginStart="10dp" />
+                    style="@style/categoryContainerStyle" />
 
                 <TextView
                     android:id="@+id/category_title_3"
@@ -60,9 +53,7 @@
 
                 <FrameLayout
                     android:id="@+id/category_container_3"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:layout_marginStart="10dp" />
+                    style="@style/categoryContainerStyle" />
 
                 <TextView
                     android:id="@+id/category_title_4"
@@ -70,9 +61,7 @@
 
                 <FrameLayout
                     android:id="@+id/category_container_4"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:layout_marginStart="10dp" />
+                    style="@style/categoryContainerStyle" />
 
                 <TextView
                     android:id="@+id/category_title_5"
@@ -80,13 +69,11 @@
 
                 <FrameLayout
                     android:id="@+id/category_container_5"
-                    android:layout_width="match_parent"
-                    android:layout_height="250dp"
-                    android:layout_marginStart="10dp" />
+                    style="@style/categoryContainerStyle" />
 
             </LinearLayout>
 
-        </ScrollView>
+        </androidx.core.widget.NestedScrollView>
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

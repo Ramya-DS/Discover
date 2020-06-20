@@ -267,7 +267,7 @@ class DiscoverApplication : Application() {
     }.start()
 
 
-    private fun fetchErrorMessage(error: ResponseBody): String {
+    fun fetchErrorMessage(error: ResponseBody): String {
         val reader: BufferedReader?
         val sb = StringBuilder()
         try {
@@ -328,5 +328,4 @@ class DiscoverApplication : Application() {
         }
         return false
     }
-
 }

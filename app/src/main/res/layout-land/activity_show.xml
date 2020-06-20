@@ -81,7 +81,8 @@
                                     android:id="@+id/show_detail_poster"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
-                                    android:scaleType="fitXY"
+                                    android:scaleType="centerInside"
+                                    android:src="@drawable/ic_media_placeholder"
                                     android:transitionName="posterImage" />
 
                             </com.google.android.material.card.MaterialCardView>
@@ -92,9 +93,9 @@
                                 android:layout_height="wrap_content"
                                 android:layout_gravity="end"
                                 android:layout_marginEnd="20dp"
-                                android:background="@drawable/voting_background"
+                                android:background="@android:color/black"
                                 android:drawableStart="@drawable/ic_tmdb"
-                                android:padding="5dp"
+                                android:padding="7dp"
                                 android:textColor="@android:color/white"
                                 app:layout_constraintBottom_toTopOf="@id/show_detail_runtime"
                                 app:layout_constraintEnd_toEndOf="parent"
@@ -177,11 +178,11 @@
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/show_detail_toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                style="@style/ToolbarStyle"
+                app:navigationIcon="@drawable/ic_back"
                 android:background="@android:color/transparent"
                 app:layout_collapseMode="pin"
-                app:navigationIcon="@drawable/ic_back" />
+                app:title="" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 

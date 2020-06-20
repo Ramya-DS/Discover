@@ -4,6 +4,6 @@
     <item
         android:id="@+id/genre_menu_view"
         android:icon="@drawable/ic_grid"
-        android:title="Change View"
+        android:title="@string/change_view"
         app:showAsAction="always" />
 </menu>

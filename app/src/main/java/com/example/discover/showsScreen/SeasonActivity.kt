@@ -1,6 +1,6 @@
 package com.example.discover.showsScreen
 
-import android.os.Build
+import android.app.ProgressDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -25,20 +25,19 @@ import com.example.discover.datamodel.tvshow.detail.Season
 import com.example.discover.mediaScreenUtils.CreditAdapter
 import com.example.discover.mediaScreenUtils.ImageAdapter
 import com.example.discover.mediaScreenUtils.InfoDialogFragment
+import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.util.ExpandableTextView
+import com.example.discover.util.NetworkSnackbar
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import java.lang.ref.WeakReference
 
-class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
+class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkLostListener {
 
     private var showId: Int = 0
     private lateinit var showName: String
-
-    private var seasonNumber: Int = 0
-    private lateinit var seasonName: String
 
     private lateinit var coordinatorLayout: CoordinatorLayout
     private lateinit var poster: ViewPager2
@@ -48,12 +47,21 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
 
     private lateinit var viewModel: SeasonViewModel
 
-    private var currentSeason: Season? = null
+    private lateinit var currentSeason: Season
+
+    private lateinit var progressDialog: ProgressDialog
+    var snackBar: NetworkSnackbar? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_season)
+
+        progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("Loading")
+        progressDialog.setCancelable(false)
+        progressDialog.setInverseBackgroundForced(false)
+        progressDialog.show()
 
         fetchIntentData()
 
@@ -72,6 +80,8 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
             ViewModelProvider.AndroidViewModelFactory.getInstance(application)
         ).get(SeasonViewModel::class.java)
 
+        viewModel.onNetworkLostListener = this
+
         val toolbar: MaterialToolbar = findViewById(R.id.season_toolbar)
         toolbar.setNavigationOnClickListener {
             supportFinishAfterTransition()
@@ -83,17 +93,18 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
 
         tabLayout = findViewById(R.id.season_tab_layout)
 
-        val text = "$showName $seasonName"
+        val text = "$showName ${currentSeason.name}"
         toolbar.title = text
 
         if (savedInstanceState == null) {
-            viewModel.seasonDetails(showId, seasonNumber).observe(this, Observer {
+            viewModel.seasonDetails(showId, currentSeason.season_number).observe(this, Observer {
                 setSeasonDetails(it)
             })
-            viewModel.fetchCreditDetails(showId, seasonNumber).observe(this, Observer {
-                setCreditDetails(it)
-            })
-            viewModel.fetchImages(showId, seasonNumber).observe(this, Observer {
+            viewModel.fetchCreditDetails(showId, currentSeason.season_number)
+                .observe(this, Observer {
+                    setCreditDetails(it)
+                })
+            viewModel.fetchImages(showId, currentSeason.season_number).observe(this, Observer {
                 setImages(it)
             })
         }
@@ -102,27 +113,21 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
     private fun fetchIntentData() {
         intent?.apply {
             showId = getIntExtra("show id", 0)
-            seasonNumber = getIntExtra("season number", 0)
             showName = getStringExtra("show name")!!
-            seasonName = getStringExtra("season name")!!
+            currentSeason = getParcelableExtra("season")!!
         }
-        Log.d("SeasonActivity", "intent $showId $seasonNumber $showName $seasonName")
+        Log.d("SeasonActivity", "intent $showId $showName $currentSeason")
     }
 
     private fun setSeasonDetails(season: Season) {
-        Log.d("SeasonActivity", "Season $season")
-
-        currentSeason = season
-
+//        currentSeason = season
         setEpisode(season.episodes)
 
         val overviewHeading: TextView = findViewById(R.id.season_overview_heading)
-        if (season.overview.isEmpty()) {
+        if (season.overview != null && season.overview!!.isEmpty()) {
             overview.visibility = View.GONE
             overviewHeading.visibility = View.GONE
-            return
-        }
-        overview.text = season.overview
+        } else overview.text = season.overview
     }
 
     private fun setCreditDetails(credit: Credit) {
@@ -164,13 +169,13 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
         if (episodes.isEmpty()) {
             episodeHeading.visibility = View.GONE
             episodeList.visibility = View.GONE
-            return
-        }
 
-        episodeList.layoutManager = LinearLayoutManager(this)
-        episodeList.setHasFixedSize(false)
-        episodeList.adapter = EpisodeAdapter(episodes, WeakReference(this), this)
-        episodeList.scrollToPosition(viewModel.episodePosition)
+        } else {
+            episodeList.layoutManager = LinearLayoutManager(this)
+            episodeList.setHasFixedSize(false)
+            episodeList.adapter = EpisodeAdapter(episodes, WeakReference(this), this)
+            episodeList.scrollToPosition(viewModel.episodePosition)
+        }
     }
 
     override fun onCrewSelected(crew: List<Crew>) {
@@ -202,9 +207,9 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
 
         if (images.posters != null && images.posters.isNotEmpty()) {
             poster.adapter = ImageAdapter(false, images.posters, WeakReference(this))
-        } else if (currentSeason?.poster_path != null) {
+        } else if (currentSeason.poster_path != null) {
             poster.adapter = ImageAdapter(
-                false, listOf(ImageDetails(0.0, currentSeason?.poster_path!!)),
+                false, listOf(ImageDetails(0.0, currentSeason.poster_path!!)),
                 WeakReference(this)
             )
         } else
@@ -213,6 +218,8 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
         TabLayoutMediator(tabLayout, poster) { tab, _ ->
             poster.setCurrentItem(tab.position, true)
         }.attach()
+
+        progressDialog.dismiss()
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -250,5 +257,18 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener {
     override fun onBackPressed() {
         super.onBackPressed()
         supportFinishAfterTransition()
+    }
+
+    override fun onNetworkLostFragment() {
+
+    }
+
+    override fun onNetworkDialog() {
+        snackBar = NetworkSnackbar.make(coordinatorLayout)
+        snackBar?.show()
+    }
+
+    override fun onNetworkDialogDismiss() {
+        snackBar?.dismiss()
     }
 }

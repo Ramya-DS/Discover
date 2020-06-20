@@ -1,7 +1,6 @@
 package com.example.discover.searchScreen
 
 import android.database.MatrixCursor
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -36,16 +35,12 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapterCreatedListener,
     SwipeRefreshLayout.OnRefreshListener, OnNetworkLostListener {
 
-    companion object {
-        const val TAG = "SearchActivity"
-    }
-
     private lateinit var searchView: SearchView
     private lateinit var viewModel: SearchViewModel
     private lateinit var resultStatus: TextView
 
     private var isMovie: Boolean? = null
-    var isLinear = true
+    private var isLinear = true
     private var displayFragment: GenreMediaResultFragment? = null
     private lateinit var textView: TextView
     private lateinit var filterIcon: ImageView
@@ -58,10 +53,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_search)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            postponeEnterTransition()
-        }
 
         viewModelInitialisation()
 
@@ -100,6 +91,7 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
 
     private fun initializeSearchView() {
         searchView = findViewById(R.id.search_searchView)
+
         val adapter = SimpleCursorAdapter(
             this,
             android.R.layout.simple_list_item_1,
@@ -332,8 +324,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
                 if (filterMedia(it).isEmpty()) {
                     if (viewModel.queryMap["page"] == "1")
                         displayNoResultFragment()
-//                    else
-//                        Toast.makeText(this, "End of results", Toast.LENGTH_SHORT).show()
                 } else {
                     if (viewModel.queryMap["page"] == "1") {
                         resultStatus.text =
@@ -347,8 +337,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
                 if (it.isEmpty()) {
                     if (viewModel.queryMap["page"] == "1")
                         displayNoResultFragment()
-//                    else
-//                        Toast.makeText(this, "End of results", Toast.LENGTH_SHORT).show()
                 } else {
                     if (viewModel.queryMap["page"] == "1") {
                         resultStatus.text = "Movies for \"${viewModel.queryMap["query"]}\""
@@ -361,8 +349,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
                 if (it.isEmpty()) {
                     if (viewModel.queryMap["page"] == "1")
                         displayNoResultFragment()
-//                    else
-//                        Toast.makeText(this, "End of results", Toast.LENGTH_SHORT).show()
                 } else {
                     if (viewModel.queryMap["page"] == "1") {
                         resultStatus.text = "Shows for \"${viewModel.queryMap["query"]}\""
@@ -444,9 +430,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
                 displayNoInternetConnectionFragment()
             }
         }
-
-//        if (!isLinear)
-//            displayFragment?.changeView(isMovie, true)
     }
 
     private fun viewDrawable(isLinear: Boolean) {
@@ -521,6 +504,7 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
         viewModel.moviesList = listOf()
         viewModel.showsList = listOf()
         viewModel.multiList = listOf()
+        viewModel.position = 0
     }
 
     override fun onStop() {

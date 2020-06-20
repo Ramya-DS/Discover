@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -47,9 +48,6 @@ import kotlin.math.abs
 class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedListener,
     OnNetworkLostListener, OnGenreSelectedListener {
 
-    var id: Int = 0
-    private lateinit var showName: String
-
     private lateinit var coordinatorLayout: CoordinatorLayout
     private lateinit var appBarLayout: AppBarLayout
     private lateinit var tabLayout: TabLayout
@@ -71,8 +69,9 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 
     private lateinit var viewModel: ShowViewModel
 
-    private var currentShow: ShowDetails? = null
+    private lateinit var currentShow: ShowPreview
     private var snackbar: NetworkSnackbar? = null
+    private lateinit var genres: List<Genres>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,8 +99,8 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     }
 
     private fun fetchIntentData() {
-        id = intent.getIntExtra("id", 0)
-        showName = intent.getStringExtra("name")!!
+        currentShow = intent?.getParcelableExtra("show")!!
+        Log.d("showIntent", "$currentShow")
     }
 
 
@@ -110,7 +109,7 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
             appBarLayout.post {
                 if (abs(verticalOffset) == appBarLayout.totalScrollRange) {
                     toolbar.background = ContextCompat.getDrawable(this, R.drawable.main_background)
-                    collapsingToolbarLayout.title = showName
+                    collapsingToolbarLayout.title = currentShow.name
                 } else if (verticalOffset == 0) {
                     collapsingToolbarLayout.title = " "
                 } else {
@@ -126,6 +125,8 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
             this,
             ViewModelProvider.AndroidViewModelFactory.getInstance(application)
         ).get(ShowViewModel::class.java)
+
+        viewModel.onNetworkLostListener = this
 
         (application as DiscoverApplication).languages.observe(this, Observer {
             allLanguage = it
@@ -145,41 +146,65 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 
         createdBy = findViewById(R.id.show_detail_createdBy)
 
+        (application as DiscoverApplication).showsGenres.observe(this, Observer {
+            genres = it
+            assignIntentDataToViews()
+        })
+
         if (savedInstanceState == null) {
-            viewModel.showDetails(id).observe(this, Observer {
+            viewModel.showDetails(currentShow.id).observe(this, Observer {
                 setShowDetails(it)
             })
 
-            viewModel.fetchCredits(id).observe(this, Observer {
+            viewModel.fetchCredits(currentShow.id).observe(this, Observer {
                 setCredits(it)
             })
 
-            viewModel.getKeywords(id).observe(this, Observer {
+            viewModel.getKeywords(currentShow.id).observe(this, Observer {
                 if (it == null) setKeywords(emptyList()) else setKeywords(it)
             })
 
-            viewModel.fetchRecommendations(id).observe(this, Observer {
+            viewModel.fetchRecommendations(currentShow.id).observe(this, Observer {
                 setRecommendations(it)
             })
 
-            viewModel.fetchSimilarShows(id).observe(this, Observer {
+            viewModel.fetchSimilarShows(currentShow.id).observe(this, Observer {
                 setSimilarShows(it)
             })
 
-            viewModel.fetchReviews(id).observe(this, Observer {
+            viewModel.fetchReviews(currentShow.id).observe(this, Observer {
                 setReviews(it)
             })
 
-            viewModel.fetchImages(id).observe(this, Observer {
+            viewModel.fetchImages(currentShow.id).observe(this, Observer {
                 setImages(it)
             })
         }
     }
 
-    private fun setShowDetails(showDetails: ShowDetails) {
-        currentShow = showDetails
-        LoadPoster(WeakReference(poster), WeakReference(this)).execute(showDetails.poster_path)
+    private fun assignIntentDataToViews() {
+        currentShow.let {
+            LoadPoster(
+                WeakReference(this@ShowActivity.poster),
+                WeakReference(this)
+            ).execute(it.poster_path)
+            title.text = it.name
+            rating.text = "  ${it.vote_average}"
+            language.text = "Original Language: ${getLanguageName(it.original_language)} "
+            firstAirDate.text = "First Air-date: ${it.first_air_date ?: '-'}"
 
+            if (it.overview != null && it.overview.isNotEmpty())
+                overview.text = it.overview
+            else {
+                overview.visibility = View.GONE
+                findViewById<View>(R.id.show_detail_overview_heading).visibility = View.GONE
+            }
+            setGenres(genresForIds(it.genre_ids))
+        }
+    }
+
+    private fun setShowDetails(showDetails: ShowDetails) {
+        LoadPoster(WeakReference(poster), WeakReference(this)).execute(showDetails.poster_path)
         title.text = showDetails.name
         rating.text = "  ${showDetails.vote_average}"
 
@@ -193,10 +218,15 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         this.details.text = details
 
         language.text = "Original Language: ${getLanguageName(showDetails.original_language)} "
-
         firstAirDate.text = "First Air-date: ${showDetails.first_air_date ?: '-'}"
 
-        overview.text = showDetails.overview
+        if (showDetails.overview != null && showDetails.overview.isEmpty())
+            overview.text = showDetails.overview
+        else {
+            overview.visibility = View.GONE
+            findViewById<View>(R.id.show_detail_overview_heading).visibility = View.GONE
+        }
+//        overview.text = showDetails.overview
 
         setGenres(showDetails.genres)
         setSeasons(showDetails.seasons)
@@ -386,14 +416,13 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         seasonsList.scrollToPosition(viewModel.seasonPosition)
     }
 
-    fun onSeasonClicked(seasonNumber: Int, seasonName: String) {
+    fun onSeasonClicked(season: Season) {
         if ((application as DiscoverApplication).checkConnectivity()) {
             onNetworkDialogDismiss()
             val intent = Intent(this, SeasonActivity::class.java).apply {
-                putExtra("show id", id)
-                putExtra("season number", seasonNumber)
-                putExtra("show name", showName)
-                putExtra("season name", seasonName)
+                putExtra("show id", currentShow.id)
+                putExtra("season", season)
+                putExtra("show name", currentShow.name)
             }
             startActivity(intent)
         } else
@@ -405,10 +434,10 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         backdrop.adapter =
             if (images.backdrops != null && images.backdrops.isNotEmpty()) {
                 ImageAdapter(true, images.backdrops, WeakReference(this))
-            } else if (currentShow?.backdrop_path != null) {
+            } else if (currentShow.backdrop_path != null) {
                 ImageAdapter(
                     true,
-                    listOf(ImageDetails(0.0, currentShow?.backdrop_path!!)),
+                    listOf(ImageDetails(0.0, currentShow.backdrop_path!!)),
                     WeakReference(this)
                 )
             } else {
@@ -511,6 +540,14 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
             putExtra("id", genreId)
         })
         overridePendingTransition(R.anim.right_in, R.anim.left_out)
+    }
+
+    private fun genresForIds(list: List<Int>): List<Genres> {
+        val genreList = mutableListOf<Genres>()
+        for (i in genres)
+            if (list.contains(i.id))
+                genreList.add(i)
+        return genreList
     }
 }
 

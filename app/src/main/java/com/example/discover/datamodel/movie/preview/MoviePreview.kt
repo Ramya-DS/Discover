@@ -41,4 +41,4 @@ data class MoviePreview(
     @SerializedName("vote_count")
     val vote_count: Int
 
-) : Serializable, Parcelable
+) :  Parcelable

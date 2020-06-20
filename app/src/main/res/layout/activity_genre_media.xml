@@ -9,13 +9,9 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/genre_media_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@drawable/main_background"
+        style="@style/ToolbarStyle"
         app:menu="@menu/genre_media_menu"
-        app:navigationIcon="@drawable/ic_back"
-        app:title="Discover"
-        app:titleTextColor="@android:color/white" />
+        app:navigationIcon="@drawable/ic_back" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/genre_media_swipe_refresh"
@@ -27,16 +23,17 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
+            <FrameLayout
+                android:id="@+id/genre_media_network_container"
+                style="@style/networkContainerStyle" />
+
             <TextView
                 android:id="@+id/genre_media_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp" />
+                style="@style/resultTestStyle" />
 
             <FrameLayout
                 android:id="@+id/genre_media_container"
-                android:layout_width="match_parent"
-                android:layout_height="fill_parent" />
+                style="@style/resultContainerStyle" />
 
         </LinearLayout>
 

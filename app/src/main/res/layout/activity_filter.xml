@@ -10,12 +10,10 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/filter_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        style="@style/ToolbarStyle"
+        android:background="@android:color/transparent"
         app:menu="@menu/filter_bar_menu"
-        app:navigationIcon="@drawable/ic_back"
-        app:title="Discover"
-        app:titleTextColor="@android:color/white" />
+        app:navigationIcon="@drawable/ic_back" />
 
     <fragment
         android:id="@+id/filter_fragment"

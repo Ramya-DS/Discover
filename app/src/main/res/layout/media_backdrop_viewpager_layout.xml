@@ -8,6 +8,8 @@
         android:id="@+id/viewpager_backdropImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layoutAnimation="@anim/fade_in"
+        android:contentDescription="@string/viewpager_image"
         android:src="@drawable/ic_episode_placeholder"
         android:scaleType="centerInside" />
 

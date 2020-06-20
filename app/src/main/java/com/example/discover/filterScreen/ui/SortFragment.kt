@@ -42,9 +42,7 @@ class SortFragment() : DialogFragment() {
         super.onCreate(savedInstanceState)
         arguments?.apply {
             isMovie = getBoolean("isMovie")
-            option = getString("option",
-                POPULARITY_DESC
-            )
+            option = getString("option", POPULARITY_DESC)
         }
     }
 
@@ -101,6 +99,4 @@ class SortFragment() : DialogFragment() {
 
         return rootView
     }
-
-
 }

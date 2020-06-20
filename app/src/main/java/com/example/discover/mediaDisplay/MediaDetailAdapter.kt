@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -54,7 +53,8 @@ class MediaDetailAdapter(
             medialDetailView.setOnClickListener(this)
         }
 
-        var id = 0
+        var mPosition: Int = 0
+        var type = 1
         var isMovie: Boolean = true
         var posterTask: LoadPoster? = null
         val poster: ImageView = medialDetailView.findViewById(R.id.media_layout_poster)
@@ -71,6 +71,16 @@ class MediaDetailAdapter(
                     onNetworkLostListener.onNetworkDialogDismiss()
                     val mClass =
                         if (isMovie) MovieActivity::class.java else ShowActivity::class.java
+                    val media = when (type) {
+                        1 -> movies[mPosition]
+                        2 -> shows[mPosition]
+                        else -> if (isMovie)
+                                formatToMoviesPreview(media[mPosition])
+                            else
+                                formatToShowsPreview(media[mPosition])
+                    }
+
+                    val key = if (isMovie) "movie" else "show"
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                         val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
@@ -79,13 +89,11 @@ class MediaDetailAdapter(
                             "posterImage"
                         )
                         startActivity(Intent(this, mClass).apply {
-                            putExtra("id", id)
-                            putExtra("name", this@MediaDetailViewHolder.title.text.split(": ")[1])
+                            putExtra(key, media)
                         }, options.toBundle())
                     } else {
                         startActivity(Intent(this, mClass).apply {
-                            putExtra("id", id)
-                            putExtra("name", this@MediaDetailViewHolder.title.text.split(": ")[1])
+                            putExtra(key, media)
                         })
                     }
                 } else {
@@ -93,6 +101,41 @@ class MediaDetailAdapter(
                     onNetworkLostListener.onNetworkLostFragment()
                 }
             }
+        }
+    }
+
+    private fun formatToShowsPreview(multiSearch: MultiSearch): ShowPreview {
+        multiSearch.apply {
+            return ShowPreview(
+                id,
+                name,
+                0,
+                vote_average,
+                first_air_date,
+                poster_path,
+                genre_ids,
+                original_language,
+                backdrop_path,
+                overview,
+                emptyList()
+            )
+        }
+    }
+
+    private fun formatToMoviesPreview(multiSearch: MultiSearch): MoviePreview {
+        multiSearch.apply {
+            return MoviePreview(
+                false,
+                backdrop_path,
+                genre_ids,
+                id,
+                original_language,
+                overview,
+                poster_path,
+                release_date,
+                title,
+                vote_average, 0
+            )
         }
     }
 
@@ -112,6 +155,8 @@ class MediaDetailAdapter(
     }
 
     override fun onBindViewHolder(holder: MediaDetailViewHolder, position: Int) {
+        holder.mPosition = position
+
         holder.poster.setImageDrawable(
             ContextCompat.getDrawable(
                 holder.itemView.context,
@@ -128,11 +173,11 @@ class MediaDetailAdapter(
             onBindMedia(holder, media[position])
 
 
-        setAnimation(holder.itemView)
+//        setAnimation(holder.itemView)
     }
 
     private fun onBindMovie(holder: MediaDetailViewHolder, moviePreview: MoviePreview) {
-        holder.id = moviePreview.id
+        holder.type = 1
         holder.isMovie = true
         moviePreview.apply {
             bindDetails(
@@ -148,7 +193,7 @@ class MediaDetailAdapter(
     }
 
     private fun onBindShow(holder: MediaDetailViewHolder, showPreview: ShowPreview) {
-        holder.id = showPreview.id
+        holder.type = 2
         holder.isMovie = false
         showPreview.apply {
             bindDetails(
@@ -164,7 +209,7 @@ class MediaDetailAdapter(
     }
 
     private fun onBindMedia(holder: MediaDetailViewHolder, multiSearch: MultiSearch) {
-        holder.id = multiSearch.id
+        holder.type = 3
         when (multiSearch.media_type) {
             "movie" -> {
                 holder.isMovie = true
@@ -214,8 +259,13 @@ class MediaDetailAdapter(
             executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, posterPath)
         }
 
+        val mRating = (rating * 10).toInt()
+        if (mRating == 0)
+            holder.rating.text = "NR"
+        else
+            holder.rating.text = "$mRating %"
         holder.ratingBar.progress = (rating * 10).toInt()
-        holder.rating.text = "${(rating * 10).toInt()} %"
+
         holder.title.text = title
 
         val releaseDate =
@@ -464,9 +514,9 @@ class MediaDetailAdapter(
         }
     }
 
-    private fun setAnimation(view: View) {
-        val anim = AlphaAnimation(0.0f, 1.0f)
-        anim.duration = 300
-        view.startAnimation(anim)
-    }
+//    private fun setAnimation(view: View) {
+//        val anim = AlphaAnimation(0.0f, 1.0f)
+//        anim.duration = 100
+//        view.startAnimation(anim)
+//    }
 }

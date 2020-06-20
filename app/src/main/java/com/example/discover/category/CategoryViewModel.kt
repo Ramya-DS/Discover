@@ -20,15 +20,11 @@ import com.example.discover.datamodel.tvshow.preview.ShowsList
 import com.example.discover.roomDatabase.DiscoverDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
 
-class CategoryViewModel(mApplication: Application) : AndroidViewModel(mApplication) {
+class CategoryViewModel(private val mApplication: Application) : AndroidViewModel(mApplication) {
 
     companion object {
         const val TAG = "CategoryViewModel"
@@ -41,6 +37,8 @@ class CategoryViewModel(mApplication: Application) : AndroidViewModel(mApplicati
         const val AIRING_TODAY = 7
     }
 
+//    var networkFragment = false
+
     var movies = hashMapOf<Int, List<MoviePreview>>()
     var shows = hashMapOf<Int, List<ShowPreview>>()
 
@@ -49,6 +47,8 @@ class CategoryViewModel(mApplication: Application) : AndroidViewModel(mApplicati
 
     var isLinear = true
     var position = 0
+
+    var page = 1
 
     var positions = SparseIntArray()
 
@@ -133,7 +133,6 @@ class CategoryViewModel(mApplication: Application) : AndroidViewModel(mApplicati
 
                 override fun onResponse(call: Call<MoviesList>, response: Response<MoviesList>) {
                     if (response.isSuccessful) {
-                        Log.d(TAG, "API_Movies: $type ${response.body()!!.results}")
                         handler.post {
                             writeMoviesPreviewsToDb(response.body()!!.results, type)
                         }
@@ -141,7 +140,9 @@ class CategoryViewModel(mApplication: Application) : AndroidViewModel(mApplicati
                     } else {
                         Log.d(
                             TAG,
-                            "APIMovies_Error: $type ${fetchErrorMessage(response.errorBody()!!)}"
+                            "APIMovies_Error: $type ${(mApplication as DiscoverApplication).fetchErrorMessage(
+                                response.errorBody()!!
+                            )}"
                         )
                     }
                 }
@@ -182,12 +183,11 @@ class CategoryViewModel(mApplication: Application) : AndroidViewModel(mApplicati
                 }
             }
         }
-        movies.shuffle()
+//        movies.shuffle()
         return movies
     }
 
     fun writeMoviesPreviewsToDb(list: List<MoviePreview>, type: Int) {
-        Log.d("MovieRepository", "writeMoviesPreviewsToDb")
         for (i in list) {
             i.apply {
                 insertMedia(
@@ -269,7 +269,9 @@ class CategoryViewModel(mApplication: Application) : AndroidViewModel(mApplicati
                     } else {
                         Log.d(
                             TAG,
-                            "APIMovies_Error: $type ${fetchErrorMessage(response.errorBody()!!)}"
+                            "APIMovies_Error: $type ${(mApplication as DiscoverApplication).fetchErrorMessage(
+                                response.errorBody()!!
+                            )}"
                         )
                     }
                 }
@@ -310,7 +312,7 @@ class CategoryViewModel(mApplication: Application) : AndroidViewModel(mApplicati
                 }
             }
         }
-        shows.shuffle()
+//        shows.shuffle()
         return shows
     }
 
@@ -337,27 +339,6 @@ class CategoryViewModel(mApplication: Application) : AndroidViewModel(mApplicati
             }
         }
 
-    }
-
-    private fun fetchErrorMessage(error: ResponseBody): String {
-        val reader: BufferedReader?
-        val sb = StringBuilder()
-        try {
-            reader =
-                BufferedReader(InputStreamReader(error.byteStream()))
-            var line: String?
-            try {
-                while (reader.readLine().also { line = it } != null) {
-                    sb.append(line)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        return sb.toString()
     }
 
     fun clearTypeTable() = handler.post {

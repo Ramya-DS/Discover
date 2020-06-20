@@ -1,6 +1,8 @@
 package com.example.discover.genreScreen
 
 import android.app.Application
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -24,13 +26,18 @@ import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 
-class GenreMediaViewModel(mApplication: Application) : AndroidViewModel(mApplication) {
+class GenreMediaViewModel(private val mApplication: Application) : AndroidViewModel(mApplication) {
 
     var movies: List<MoviePreview>? = null
     var shows: List<ShowPreview>? = null
 
     var isLinear = true
     var position = 0
+
+    private val handlerThread = HandlerThread("insert").apply {
+        start()
+    }
+    private val handler = Handler(handlerThread.looper)
 
     private val genreMediaApiCall = (mApplication as DiscoverApplication).genreMediaApiCall
 
@@ -43,7 +50,6 @@ class GenreMediaViewModel(mApplication: Application) : AndroidViewModel(mApplica
             override fun onFailure(call: Call<MoviesList>, t: Throwable) {
                 if (page == 1)
                     getGenreMovies(genreId).observeForever {
-                        Log.d("genreMedia", it.toString())
                         movies.postValue(it)
                     }
             }
@@ -52,7 +58,7 @@ class GenreMediaViewModel(mApplication: Application) : AndroidViewModel(mApplica
                 if (response.isSuccessful) {
                     movies.postValue(response.body()!!.results)
                     writeMoviesPreviewsToDb(response.body()!!.results)
-                } else Log.d("GenreMediaViewModel", fetchErrorMessage(response.errorBody()!!))
+                } else Log.d("GenreMediaViewModel", (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!))
             }
         })
 
@@ -74,7 +80,7 @@ class GenreMediaViewModel(mApplication: Application) : AndroidViewModel(mApplica
                 if (response.isSuccessful) {
                     shows.postValue(response.body()!!.results)
                     writeShowsPreviewsToDb(response.body()!!.results)
-                } else Log.d("GenreMediaViewModel", fetchErrorMessage(response.errorBody()!!))
+                } else Log.d("GenreMediaViewModel", (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!))
             }
         })
 
@@ -82,7 +88,7 @@ class GenreMediaViewModel(mApplication: Application) : AndroidViewModel(mApplica
     }
 
     private fun writeShowsPreviewsToDb(shows: List<ShowPreview>) {
-        Thread {
+       handler.post{
             for (i in shows) {
                 i.apply {
                     insertMedia(
@@ -104,12 +110,11 @@ class GenreMediaViewModel(mApplication: Application) : AndroidViewModel(mApplica
                     insertType(i.id, false)
                 }
             }
-        }.start()
+        }
     }
 
     fun writeMoviesPreviewsToDb(list: List<MoviePreview>) {
-        Log.d("MovieRepository", "writeMoviesPreviewsToDb")
-        Thread {
+        handler.post{
             for (i in list) {
                 i.apply {
                     insertMedia(
@@ -131,7 +136,7 @@ class GenreMediaViewModel(mApplication: Application) : AndroidViewModel(mApplica
                     insertType(i.id, true)
                 }
             }
-        }.start()
+        }
     }
 
     private fun insertMedia(media: Media) {
@@ -160,27 +165,6 @@ class GenreMediaViewModel(mApplication: Application) : AndroidViewModel(mApplica
             results.postValue(formatToShowPreview(categoryDao.getGenreMedia(id, false)))
         }
         return results
-    }
-
-    private fun fetchErrorMessage(error: ResponseBody): String {
-        val reader: BufferedReader?
-        val sb = StringBuilder()
-        try {
-            reader =
-                BufferedReader(InputStreamReader(error.byteStream()))
-            var line: String?
-            try {
-                while (reader.readLine().also { line = it } != null) {
-                    sb.append(line)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        return sb.toString()
     }
 
     private fun formatToShowPreview(genreMedia: GenreMedia?): MutableList<ShowPreview> {

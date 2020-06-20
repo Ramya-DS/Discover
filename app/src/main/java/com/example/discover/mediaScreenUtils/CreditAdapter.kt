@@ -52,9 +52,7 @@ class CreditAdapter(
                     holder.imageTask = this
                     executeOnExecutor(
                         AsyncTask.THREAD_POOL_EXECUTOR,
-                        crew.profile_path,
-                        "120",
-                        "120"
+                        crew.profile_path
                     )
                 }
             }

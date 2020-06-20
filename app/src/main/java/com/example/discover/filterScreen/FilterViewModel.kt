@@ -11,16 +11,13 @@ import com.example.discover.datamodel.movie.preview.MoviePreview
 import com.example.discover.datamodel.tvshow.preview.ShowPreview
 import com.example.discover.datamodel.tvshow.preview.ShowsList
 import com.example.discover.searchScreen.OnNetworkLostListener
-import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
 
 class FilterViewModel(private val mApplication: Application) : AndroidViewModel(mApplication) {
 
+    var network: Boolean = false
     var queryMap = HashMap<String, String>().apply {
         put("media", "movie")
     }
@@ -33,6 +30,7 @@ class FilterViewModel(private val mApplication: Application) : AndroidViewModel(
     var isLinear = true
     var size = 0
     var position = 0
+    var discover = false
 
     fun discoverMovies(parameter: Map<String, String>): LiveData<List<MoviePreview>> {
         val call = getDiscoverApiCall().discoverMovies(parameter)
@@ -50,17 +48,18 @@ class FilterViewModel(private val mApplication: Application) : AndroidViewModel(
         val result = MutableLiveData<List<MoviePreview>>()
         call.enqueue(object : Callback<MoviesList> {
             override fun onFailure(call: Call<MoviesList>, t: Throwable) {
-                Log.d("MovieMain", "Failure ${t.message}")
                 onNetworkLostListener?.onNetworkLostFragment()
             }
 
             override fun onResponse(call: Call<MoviesList>, response: Response<MoviesList>) {
                 if (response.isSuccessful) {
                     onNetworkLostListener?.onNetworkDialogDismiss()
-                    Log.d("result", response.body()!!.results.size.toString())
                     result.value = response.body()!!.results
                 } else {
-                    Log.d("MovieMain", "Error" + fetchErrorMessage(response.errorBody()!!))
+                    Log.d(
+                        "MovieMain",
+                        "Error" + (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!)
+                    )
                 }
             }
         })
@@ -73,42 +72,22 @@ class FilterViewModel(private val mApplication: Application) : AndroidViewModel(
         val result = MutableLiveData<List<ShowPreview>>()
         call.enqueue(object : Callback<ShowsList> {
             override fun onFailure(call: Call<ShowsList>, t: Throwable) {
-                Log.d("MovieMain", "Failure ${t.message}")
                 onNetworkLostListener?.onNetworkLostFragment()
             }
 
             override fun onResponse(call: Call<ShowsList>, response: Response<ShowsList>) {
                 if (response.isSuccessful) {
-                    Log.d("result", response.body()!!.results.size.toString())
                     onNetworkLostListener?.onNetworkDialogDismiss()
                     result.value = response.body()!!.results
                 } else {
-                    Log.d("MovieMain", "Error" + fetchErrorMessage(response.errorBody()!!))
+                    Log.d(
+                        "MovieMain",
+                        "Error" + (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!)
+                    )
                 }
             }
         })
         return result
-    }
-
-    fun fetchErrorMessage(error: ResponseBody): String {
-        val reader: BufferedReader?
-        val sb = StringBuilder()
-        try {
-            reader =
-                BufferedReader(InputStreamReader(error.byteStream()))
-            var line: String?
-            try {
-                while (reader.readLine().also { line = it } != null) {
-                    sb.append(line)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        return sb.toString()
     }
 
     private fun getDiscoverApiCall(): FilterApiCall {

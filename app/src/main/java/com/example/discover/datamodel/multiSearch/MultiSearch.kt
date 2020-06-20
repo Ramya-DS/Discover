@@ -10,6 +10,7 @@ data class MultiSearch(
     @SerializedName("release_date") val release_date: String,
     @SerializedName("genre_ids") val genre_ids: List<Int>,
     @SerializedName("id") val id: Int,
+    @SerializedName("overview") val overview: String?,
     @SerializedName("media_type") val media_type: String,
     @SerializedName("original_language") val original_language: String,
     @SerializedName("backdrop_path") val backdrop_path: String,

@@ -3,12 +3,12 @@ package com.example.discover.genreScreen
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -20,6 +20,7 @@ import com.example.discover.datamodel.tvshow.preview.ShowPreview
 import com.example.discover.mediaDisplay.OnAdapterCreatedListener
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.util.LoadingFragment
+import com.example.discover.util.NoInternetFragment
 import com.google.android.material.appbar.MaterialToolbar
 
 class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
@@ -29,7 +30,6 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
     private var genreId: Int = 0
     var page = 1
 
-    var isLinear = true
     lateinit var viewModel: GenreMediaViewModel
     var resultFragment: GenreMediaResultFragment? = null
 
@@ -121,12 +121,12 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.genre_menu_view) {
-            item.icon = if (isLinear) ContextCompat.getDrawable(
+            item.icon = if (viewModel.isLinear) ContextCompat.getDrawable(
                 this,
                 R.drawable.ic_linear_list
             ) else ContextCompat.getDrawable(this, R.drawable.ic_grid)
-            resultFragment?.changeView(isMovie, isLinear)
-            isLinear = !isLinear
+            resultFragment?.changeView(isMovie, viewModel.isLinear)
+            viewModel.isLinear = !viewModel.isLinear
             return true
         }
         return super.onOptionsItemSelected(item)
@@ -151,7 +151,7 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
     }
 
     private fun displayResultFragment() {
-        resultFragment = GenreMediaResultFragment.newInstance(isLinear, typeConvert())
+        resultFragment = GenreMediaResultFragment.newInstance(viewModel.isLinear, typeConvert())
         supportFragmentManager.beginTransaction()
             .replace(R.id.genre_media_container, resultFragment!!, "RESULT").commit()
 
@@ -173,11 +173,11 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
     }
 
     private fun displayRestMovies(results: List<MoviePreview>) {
-        resultFragment?.appendMoviesResult(isLinear, results)
+        resultFragment?.appendMoviesResult(viewModel.isLinear, results)
     }
 
     private fun displayRestShows(results: List<ShowPreview>) {
-        resultFragment?.appendShowsResult(isLinear, results)
+        resultFragment?.appendShowsResult(viewModel.isLinear, results)
     }
 
     fun fetchMore() {
@@ -209,27 +209,18 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
     override fun onAdapterCreated() {
         if (isMovie)
             viewModel.movies?.let {
-                resultFragment?.setMovieResults(isLinear, it)
+                resultFragment?.setMovieResults(viewModel.isLinear, it)
             }
         else
             viewModel.shows?.let {
-                resultFragment?.setShowsResults(isLinear, it)
+                resultFragment?.setShowsResults(viewModel.isLinear, it)
             }
         resultFragment?.restorePosition(viewModel.position)
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        viewModel.isLinear = isLinear
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        isLinear = viewModel.isLinear
-    }
-
     override fun onRefresh() {
         Handler().postDelayed({
+            viewModel.position = 0
             displayLoadingFragment()
             resultRequest(1)
             swipeRefreshLayout.isRefreshing = false
@@ -241,9 +232,11 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
     }
 
     override fun onNetworkDialog() {
+        displayNoInternetConnectionFragment()
     }
 
     override fun onNetworkDialogDismiss() {
+        removeNoConnectionFragment()
     }
 
     override fun onBackPressed() {
@@ -253,5 +246,25 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
 
     fun restorePosition(position: Int) {
         viewModel.position = position
+    }
+
+    private fun displayNoInternetConnectionFragment() {
+        supportFragmentManager.beginTransaction()
+            .replace(
+                R.id.genre_media_network_container,
+                NoInternetFragment(),
+                "genre_no_connection"
+            )
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            .commit()
+    }
+
+    private fun removeNoConnectionFragment() {
+        supportFragmentManager.findFragmentByTag("genre_no_connection")?.let {
+            supportFragmentManager.beginTransaction()
+                .remove(it)
+                .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                .commit()
+        }
     }
 }

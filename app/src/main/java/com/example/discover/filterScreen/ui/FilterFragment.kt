@@ -35,12 +35,11 @@ import com.google.android.material.button.MaterialButton
 /**
  * A simple [Fragment] subclass.
  */
-class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
-    OnSortOptionSelectedListener, SwipeRefreshLayout.OnRefreshListener, OnAdapterCreatedListener,
+class FilterFragment : Fragment(), OnSortOptionSelectedListener,
+    SwipeRefreshLayout.OnRefreshListener, OnAdapterCreatedListener,
     OnNetworkLostListener {
 
     private lateinit var queryMap: HashMap<String, String>
-    //    private var yearList = createYearList()
     private lateinit var viewModel: FilterViewModel
     private var isMovie = true
     private var isLinear = true
@@ -51,11 +50,9 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
     private lateinit var voteAverageText: EditText
     private lateinit var runtimeText: EditText
     private lateinit var yearText: EditText
-    //    private lateinit var fromSpinner: Spinner
-//    private lateinit var toSpinner: Spinner
     private lateinit var grid: ImageView
 
-    private var discover = false
+//    private var discover = false
 
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
 
@@ -83,9 +80,6 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
         //info button
         infoInitialisation(rootView)
 
-        //spinner
-//        spinnerInitialisation(rootView)
-
         sortAction(rootView)
         listViewChange(rootView)
 
@@ -97,7 +91,8 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
         //filter button
         val filter: MaterialButton = rootView.findViewById(R.id.filter_button)
         filter.setOnClickListener {
-            discover = true
+            viewModel.discover = true
+            size.postValue(0)
             if (yearText.text.toString().trim().isNotEmpty())
                 queryMap["primary_release_year"] = yearText.text.toString().trim()
             if (voteAverageText.text.trim().isNotEmpty())
@@ -146,15 +141,10 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
     }
 
     private fun infoInitialisation(rootView: View) {
-//        val releaseInfo: ImageView = rootView.findViewById(R.id.filter_releaseYearLimit)
         val voteAverageInfo: ImageView =
             rootView.findViewById(R.id.filter_voteAverageInfo)
         val runtimeInfo: ImageView = rootView.findViewById(R.id.filter_runtimeInfo)
         val yearInfo: ImageView = rootView.findViewById(R.id.filter_yearInfo)
-
-//        releaseInfo.setOnClickListener {
-//            showInfo("Filter and only include movies that have a release date (looking at all release dates) that is in between the range, inclusive of the limits.")
-//        }
 
         voteAverageInfo.setOnClickListener {
             showInfo("Filter and only include movies that have a vote count that is greater or equal to the entered value. Value must range from 0 to 10.0")
@@ -167,42 +157,6 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
         yearInfo.setOnClickListener {
             showInfo("A filter to limit the results to a specific primary release year.")
         }
-    }
-
-//    private fun spinnerInitialisation(rootView: View) {
-//        fromSpinner = rootView.findViewById(R.id.from)
-//        toSpinner = rootView.findViewById(R.id.to)
-//
-//        yearList = createYearList()
-//        createSpinnerAdapter()
-//        fromSpinner.onItemSelectedListener = this
-//        toSpinner.onItemSelectedListener = this
-//    }
-
-//    private fun createYearList(): List<String> {
-//        val years = ArrayList<String>()
-//        years.add("Year")
-//        for (i in 1900..2020)
-//            years.add(i.toString())
-//
-//        return years
-//    }
-
-    override fun onNothingSelected(parent: AdapterView<*>?) {
-
-    }
-
-    override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-//        if (position == 0)
-//            return
-//        parent?.let {
-//            if (parent.id == R.id.from) {
-//                queryMap["release_date.gte"] = yearList[position]
-//            } else if (parent.id == R.id.to) {
-//                queryMap["release_date.lte"] = yearList[position]
-//            }
-//        }
-
     }
 
     private fun showInfo(text: String) {
@@ -226,11 +180,9 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
             viewModel.discoverMovies(queryMap).observe(viewLifecycleOwner, Observer {
                 if (it.isNotEmpty()) {
                     if (queryMap["page"] == "1") {
-                        Log.d("fillMedia", "page 1 size${it.size}")
                         size.postValue(it.size)
                         firstPageOfMovies(it)
                     } else {
-                        Log.d("fillMedia", "rest pages${size.value}")
                         size.postValue(size.value?.plus(it.size))
                         displayRestMovies(it)
                     }
@@ -279,26 +231,26 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
     override fun onSortSelected(option: String) {
         queryMap["sort_by"] = option
         queryMap["page"] = "1"
+        size.postValue(0)
         displayLoadingFragment()
         fillMedia(isMovie)
+        viewModel.position = 0
 
     }
 
     fun resetAction() {
         clearViewModelData()
-        discover = false
         queryMap.clear()
         queryMap["media"] = "movie"
         movieButton?.isChecked = true
         voteAverageText.text.clear()
         runtimeText.text.clear()
         yearText.text.clear()
-//        createSpinnerAdapter()
         removeResultFragment()
         removeNoResultFragment()
         showFilterFragment()
         size.postValue(0)
-
+        viewModel.discover = false
     }
 
     private fun listViewChange(rootView: View) {
@@ -331,15 +283,16 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
 
     override fun onRefresh() {
         Handler().postDelayed({
+            viewModel.position = 0
             if ((activity?.application as DiscoverApplication).checkConnectivity()) {
                 removeNoConnectionFragment()
                 queryMap["page"] = "1"
-                if (discover) {
+                if (viewModel.discover) {
                     displayLoadingFragment()
                     fillMedia(isMovie)
                 }
             } else {
-                if (!discover)
+                if (!viewModel.discover)
                     size.postValue(0)
                 displayNoInternetConnectionFragment()
             }
@@ -361,7 +314,6 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
     }
 
     private fun displayResultFragment() {
-        Log.d("isLinear", "displayResultFragment $isLinear")
         resultFragment = GenreMediaResultFragment.newInstance(isLinear, typeConvert())
         childFragmentManager.beginTransaction()
             .replace(R.id.filter_container, resultFragment!!, "filter_result")
@@ -413,8 +365,6 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
         removeLoadingFragment()
         removeResultFragment()
         displayResultFragment()
-        Log.d("isLinear", "firstPageOfMovies $isLinear ${results.size}")
-//        resultFragment?.setMovieResults(isLinear, results)
     }
 
     private fun firstPageOfShows(results: List<ShowPreview>) {
@@ -424,7 +374,6 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
         removeLoadingFragment()
         removeResultFragment()
         displayResultFragment()
-//        resultFragment!!.setShowsResults(isLinear, results)
     }
 
     private fun displayRestMovies(results: List<MoviePreview>) {
@@ -456,13 +405,15 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
         size.value?.let {
             viewModel.size = it
         }
+
+        viewModel.network = childFragmentManager.findFragmentByTag("search_no_connection") != null
+        Log.d("network", viewModel.network.toString())
     }
 
     private fun typeConvert(): String {
         return when (isMovie) {
             true -> "movie"
             false -> "show"
-            else -> "media"
         }
     }
 
@@ -483,6 +434,10 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
         super.onViewStateRestored(savedInstanceState)
         isMovie = viewModel.isMovie
         isLinear = viewModel.isLinear
+
+        if (viewModel.network)
+            displayNoInternetConnectionFragment()
+
         if (isMovie)
             viewModel.movies?.let {
                 firstPageOfMovies(it)
@@ -494,9 +449,10 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
 
         queryMap = viewModel.queryMap
         size.postValue(viewModel.size)
+        Log.d("networkRestore", viewModel.network.toString())
 
-        if (!(activity?.application as DiscoverApplication).checkConnectivity())
-            displayNoInternetConnectionFragment()
+        if (viewModel.size == 0 && viewModel.discover)
+            displayLoadingFragment()
     }
 
     private fun clearViewModelData() {
@@ -504,27 +460,20 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
         viewModel.movies = null
         viewModel.shows = null
         viewModel.isMovie = true
+        viewModel.position = 0
     }
-
-//    private fun createSpinnerAdapter() {
-//        fromSpinner.adapter = null
-//        toSpinner.adapter = null
-//        val adapter =
-//            ArrayAdapter<String>(context!!, android.R.layout.simple_spinner_dropdown_item, yearList)
-//        fromSpinner.adapter = adapter
-//        toSpinner.adapter = adapter
-//    }
 
     private fun displayNoInternetConnectionFragment() {
         childFragmentManager.beginTransaction()
             .replace(R.id.filter_network_container, NoInternetFragment(), "search_no_connection")
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            .commit()
+            .commitNow()
+
+        childFragmentManager.executePendingTransactions()
     }
 
     private fun removeNoConnectionFragment() {
         childFragmentManager.findFragmentByTag("search_no_connection")?.let {
-            Log.d("removeNoConnFragment", "")
             childFragmentManager.beginTransaction()
                 .remove(it)
                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
@@ -536,6 +485,7 @@ class FilterFragment : Fragment(), AdapterView.OnItemSelectedListener,
         displayNoInternetConnectionFragment()
         removeResultFragment()
         displayLoadingFragment()
+        viewModel.discover = true
         size.postValue(0)
     }
 

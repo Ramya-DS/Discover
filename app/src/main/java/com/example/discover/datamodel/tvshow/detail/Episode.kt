@@ -1,12 +1,15 @@
 package com.example.discover.datamodel.tvshow.detail
 
+import android.os.Parcelable
 import androidx.room.*
 import com.example.discover.datamodel.credit.cast.Cast
 import com.example.discover.datamodel.credit.cast.MediaCastCrossReference
 import com.example.discover.datamodel.credit.crew.Crew
 import com.example.discover.datamodel.credit.crew.MediaCrewCrossReference
 import com.google.gson.annotations.SerializedName
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 @Entity(tableName = "Episode")
 data class Episode(
 
@@ -67,6 +70,6 @@ data class Episode(
     var guest_stars: List<Cast>,
 
     var season_id: Int
-) {
+) : Parcelable {
     constructor() : this("", 0, 0, "", "", 0, null, 0.0, 0, emptyList(), emptyList(), 0)
 }

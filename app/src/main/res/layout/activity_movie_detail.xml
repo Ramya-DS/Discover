@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/movie_detail_coordinator"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/movie_detail_coordinator"
     android:background="@drawable/main_background">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/movie_detail_app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:fitsSystemWindows="true">
+        android:background="@android:color/transparent">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/movie_detail_collapsing"
@@ -73,8 +72,9 @@
                             android:id="@+id/movie_detail_poster"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:scaleType="fitXY"
-                            android:transitionName="posterImage"/>
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/ic_media_placeholder"
+                            android:transitionName="posterImage" />
 
                     </com.google.android.material.card.MaterialCardView>
 
@@ -96,8 +96,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
-                        android:layout_marginEnd="16dp"
                         android:layout_marginTop="5dp"
+                        android:layout_marginEnd="16dp"
                         android:background="@android:color/transparent"
                         android:src="@drawable/ic_info_white"
                         android:tint="@color/white"
@@ -167,12 +167,11 @@
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/movie_detail_toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                style="@style/ToolbarStyle"
                 android:background="@android:color/transparent"
                 app:layout_collapseMode="pin"
                 app:navigationIcon="@drawable/ic_back"
-                app:titleTextColor="@color/white" />
+                app:title="" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
 
@@ -198,6 +197,7 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/movie_detail_overview_heading"
                     style="@style/subHeadingText"
                     android:layout_marginBottom="10dp"
                     android:text="@string/overview" />

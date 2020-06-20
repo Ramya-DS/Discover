@@ -2,14 +2,17 @@ package com.example.discover.movieScreen
 
 import android.content.Intent
 import android.net.Uri
+import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.View.GONE
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
@@ -51,14 +54,11 @@ class MovieActivity : AppCompatActivity(),
     OnReviewClickListener,
     OnUrlSelectedListener, OnNetworkLostListener, OnGenreSelectedListener {
 
-    private var id = 0
-
     private lateinit var coordinatorLayout: CoordinatorLayout
     private lateinit var appBarLayout: AppBarLayout
     private lateinit var tabLayout: TabLayout
     private lateinit var collapsingToolbarLayout: CollapsingToolbarLayout
     private lateinit var toolbar: MaterialToolbar
-    private lateinit var movieName: String
     private lateinit var backdropImage: ViewPager2
     private lateinit var posterImage: ImageView
     private lateinit var rating: TextView
@@ -76,13 +76,14 @@ class MovieActivity : AppCompatActivity(),
 
     private var infoDialog: InfoDialogFragment? = null
     private var linkDialog: InfoDialogFragment? = null
-    lateinit var viewModel: MovieViewModel
+    private lateinit var viewModel: MovieViewModel
 
     private lateinit var languages: List<Language>
+    private lateinit var genres: List<Genres>
 
     private var menu: Menu? = null
 
-    var currentMovie: MovieDetails? = null
+    private lateinit var currentMovie: MoviePreview
 
     private var snackbar: NetworkSnackbar? = null
 
@@ -120,7 +121,7 @@ class MovieActivity : AppCompatActivity(),
             appBarLayout.post {
                 if (abs(verticalOffset) == appBarLayout.totalScrollRange) {
                     toolbar.background = ContextCompat.getDrawable(this, R.drawable.main_background)
-                    collapsingToolbarLayout.title = movieName
+                    collapsingToolbarLayout.title = currentMovie.title
                     infoItem?.isVisible = true
                 } else if (verticalOffset == 0) {
                     collapsingToolbarLayout.title = " "
@@ -134,8 +135,7 @@ class MovieActivity : AppCompatActivity(),
     }
 
     private fun fetchIntentData() {
-        id = intent.getIntExtra("id", 0)
-        movieName = intent.getStringExtra("name")!!
+        currentMovie = intent?.getParcelableExtra("movie")!!
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -143,10 +143,15 @@ class MovieActivity : AppCompatActivity(),
             displayInfoDialog(infoDialog!!)
             return true
         } else if (item.itemId == R.id.externalLink) {
-            displayInfoDialog(linkDialog!!)
+            if (linkDialog != null) displayInfoDialog(linkDialog!!)
+            else Toast.makeText(
+                this,
+                "Please wait till loading information",
+                Toast.LENGTH_SHORT
+            ).show()
+
             return true
         }
-
         return super.onOptionsItemSelected(item)
     }
 
@@ -170,48 +175,89 @@ class MovieActivity : AppCompatActivity(),
             ViewModelProvider.AndroidViewModelFactory.getInstance(application)
         ).get(MovieViewModel::class.java)
 
+        viewModel.onNetworkLostListener = this
+
         (application as DiscoverApplication).languages.observe(this, Observer {
             languages = it
         })
 
+        (application as DiscoverApplication).movieGenres.observe(this, Observer {
+            genres = it
+            assignIntentDataToViews()
+        })
+
         if (savedInstanceState == null) {
-            viewModel.movieDetails(id).observe(this, Observer {
+
+            viewModel.movieDetails(currentMovie.id).observe(this, Observer {
                 setMovieDetails(it)
             })
 
-            viewModel.fetchCredits(id).observe(this, Observer {
+            viewModel.fetchCredits(currentMovie.id).observe(this, Observer {
                 setCredits(it)
             })
 
-            viewModel.getKeywords(id).observe(this, Observer {
+            viewModel.getKeywords(currentMovie.id).observe(this, Observer {
                 setKeywords(it)
             })
 
-            viewModel.fetchRecommendations(id).observe(this, Observer {
+            viewModel.fetchRecommendations(currentMovie.id).observe(this, Observer {
                 setRecommendations(it)
             })
 
-            viewModel.fetchSimilarMovies(id).observe(this, Observer {
+            viewModel.fetchSimilarMovies(currentMovie.id).observe(this, Observer {
                 setSimilarMovies(it)
             })
 
-            viewModel.fetchReviews(id).observe(this, Observer {
+            viewModel.fetchReviews(currentMovie.id).observe(this, Observer {
                 setReviews(it)
             })
 
-            viewModel.fetchExternalIds(id).observe(this, Observer {
+            viewModel.fetchExternalIds(currentMovie.id).observe(this, Observer {
                 setExternalIds(it)
             })
 
-            viewModel.fetchImages(id).observe(this, Observer {
+            viewModel.fetchImages(currentMovie.id).observe(this, Observer {
                 setImages(it)
             })
         }
     }
 
+    private fun assignIntentDataToViews() {
+        currentMovie.apply {
+            //            backdropImage.orientation = ViewPager2.ORIENTATION_HORIZONTAL
+//            if (backdrop_path != null)
+//                backdropImage.adapter = ImageAdapter(
+//                    true,
+//                    listOf(ImageDetails(0.0, backdrop_path)),
+//                    WeakReference(this@MovieActivity)
+//                )
+//            else
+//                backdropImage.adapter = ImageAdapter(true, null, WeakReference(this@MovieActivity))
+
+            setGenres(genresForIds(genre_ids))
+
+            LoadPoster(
+                WeakReference(posterImage),
+                WeakReference(this@MovieActivity)
+            ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, poster_path)
+
+            if (overview != null && overview.isNotEmpty())
+                this@MovieActivity.overview.text = overview
+            else {
+                this@MovieActivity.overview.visibility = GONE
+                findViewById<View>(R.id.movie_detail_overview_heading).visibility = GONE
+            }
+//            this@MovieActivity.overview.text = overview
+            this@MovieActivity.rating.text = "${currentMovie.vote_average} "
+            this@MovieActivity.tagLine.text = "Tagline: -"
+            this@MovieActivity.title.text = title
+            infoDialog = InfoDialogFragment.newInfoInstance(createPreviewInfo(), "More Information")
+        }
+    }
+
 
     private fun setMovieDetails(movieDetails: MovieDetails) {
-        currentMovie = movieDetails
+//        currentMovie = movieDetails
         infoDialog =
             InfoDialogFragment.newInfoInstance(createInfo(movieDetails), "More Information")
 
@@ -225,9 +271,16 @@ class MovieActivity : AppCompatActivity(),
         val tag =
             if (movieDetails.tagline != null && movieDetails.tagline.isNotEmpty()) "Tagline: ${movieDetails.tagline}" else "Tagline: -"
         tagLine.text = tag
-        val text = "Runtime: ${movieDetails.runtime} minutes"
+        val text =
+            if (movieDetails.runtime != 0) "Runtime: ${movieDetails.runtime} minutes" else "Runtime: -"
         runtime.text = text
-        overview.text = movieDetails.overview
+
+        if (movieDetails.overview != null && movieDetails.overview.isNotEmpty())
+            overview.text = movieDetails.overview
+        else {
+            overview.visibility = GONE
+            findViewById<View>(R.id.movie_detail_overview_heading).visibility = GONE
+        }
         status.text = movieDetails.status
 
         setGenres(movieDetails.genres)
@@ -241,8 +294,8 @@ class MovieActivity : AppCompatActivity(),
         val castHeading = findViewById<TextView>(R.id.movie_detail_cast_heading)
 
         if (credit.cast.isEmpty()) {
-            castHeading.visibility = View.GONE
-            cast.visibility = View.GONE
+            castHeading.visibility = GONE
+            cast.visibility = GONE
         } else {
             cast.layoutManager = GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
             cast.setHasFixedSize(true)
@@ -256,8 +309,8 @@ class MovieActivity : AppCompatActivity(),
         }
 
         if (credit.crew.isEmpty()) {
-            crewHeading.visibility = View.GONE
-            crew.visibility = View.GONE
+            crewHeading.visibility = GONE
+            crew.visibility = GONE
         } else {
             crew.layoutManager = GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
             crew.setHasFixedSize(true)
@@ -276,8 +329,8 @@ class MovieActivity : AppCompatActivity(),
         val genresList: RecyclerView = findViewById(R.id.movie_detail_genresList)
 
         if (genres.isEmpty()) {
-            genreHeading.visibility = View.GONE
-            genresList.visibility = View.GONE
+            genreHeading.visibility = GONE
+            genresList.visibility = GONE
             return
         }
 
@@ -300,8 +353,8 @@ class MovieActivity : AppCompatActivity(),
         val keywordList: RecyclerView = findViewById(R.id.movie_detail_keywordsList)
 
         if (keywords.isEmpty()) {
-            keywordHeading.visibility = View.GONE
-            keywordList.visibility = View.GONE
+            keywordHeading.visibility = GONE
+            keywordList.visibility = GONE
             return
         }
 
@@ -318,8 +371,8 @@ class MovieActivity : AppCompatActivity(),
         val recommendations: RecyclerView = findViewById(R.id.movie_detail_recommendations)
 
         if (movies.isEmpty()) {
-            recommendationHeading.visibility = View.GONE
-            recommendations.visibility = View.GONE
+            recommendationHeading.visibility = GONE
+            recommendations.visibility = GONE
             return
         }
         recommendations.layoutManager =
@@ -338,8 +391,8 @@ class MovieActivity : AppCompatActivity(),
         val similarMoviesList: RecyclerView = findViewById(R.id.movie_detail_similarMovies)
 
         if (movies.isEmpty()) {
-            similarHeading.visibility = View.GONE
-            similarMoviesList.visibility = View.GONE
+            similarHeading.visibility = GONE
+            similarMoviesList.visibility = GONE
             return
         }
 
@@ -359,7 +412,7 @@ class MovieActivity : AppCompatActivity(),
 
         if (reviews.isEmpty()) {
             reviewHeading.visibility = View.INVISIBLE
-            reviewsList.visibility = View.GONE
+            reviewsList.visibility = GONE
             return
         }
         reviewsList.layoutManager = GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
@@ -433,6 +486,26 @@ class MovieActivity : AppCompatActivity(),
             list.add(InfoClass(R.drawable.ic_twitter, twitter_id, "Twitter ID"))
         }
 
+        return list
+    }
+
+    private fun createPreviewInfo(): List<InfoClass> {
+        val list = mutableListOf<InfoClass>()
+        list.add(
+            InfoClass(
+                R.drawable.ic_language,
+                getLanguageName(currentMovie.original_language),
+                "Original Language"
+            )
+        )
+        if (currentMovie.release_date != null && currentMovie.release_date!!.trim().isNotEmpty())
+            list.add(
+                InfoClass(
+                    R.drawable.ic_release_date,
+                    currentMovie.release_date,
+                    "Release Date"
+                )
+            )
         return list
     }
 
@@ -583,4 +656,11 @@ class MovieActivity : AppCompatActivity(),
         overridePendingTransition(R.anim.right_in, R.anim.left_out)
     }
 
+    private fun genresForIds(list: List<Int>): List<Genres> {
+        val genreList = mutableListOf<Genres>()
+        for (i in genres)
+            if (list.contains(i.id))
+                genreList.add(i)
+        return genreList
+    }
 }

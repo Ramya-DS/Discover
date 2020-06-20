@@ -26,4 +26,11 @@
     <string name="created_by">Created By</string>
     <string name="still_path">Still path</string>
     <string name="episodes">Episode</string>
+    <string name="viewpager_image">viewpager_image</string>
+    <string name="change_view">Change View</string>
+    <string name="icon_person">Icon_person</string>
+    <string name="review_link">review link</string>
+    <string name="back">Back</string>
+    <string name="movie_image">Movie image</string>
+    <string name="tv_show_image">Tv Show Image</string>
 </resources>

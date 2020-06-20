@@ -65,8 +65,6 @@ class InfoDialogFragment : DialogFragment() {
             crew = getParcelableArrayList<Crew>("crew")
             cast = getParcelableArrayList<Cast>("cast")
             title = getString("title")!!
-            Log.d("arguments", "$info $crew $cast")
-
         }
     }
 
@@ -95,16 +93,9 @@ class InfoDialogFragment : DialogFragment() {
                         it,
                         activity as MovieActivity
                     )
-//            else
-//                recyclerView.adapter =
-//                    InfoAdapter(
-//                        it,
-//                        activity as ShowActivity
-//                    )
         }
 
         cast?.let {
-            Log.d("cast", it.toString())
             recyclerView.adapter = CreditAdapter(
                 false,
                 WeakReference(activity as Activity)
@@ -116,7 +107,6 @@ class InfoDialogFragment : DialogFragment() {
         }
 
         crew?.let {
-            Log.d("crew", it.toString())
             recyclerView.adapter = CreditAdapter(
                 true,
                 WeakReference(activity as Activity)
@@ -126,9 +116,6 @@ class InfoDialogFragment : DialogFragment() {
             recyclerView.addItemDecoration(object : RecyclerView.ItemDecoration() {
             })
         }
-
         return rootView
     }
-
-
 }

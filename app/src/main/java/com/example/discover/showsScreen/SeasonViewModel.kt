@@ -9,13 +9,10 @@ import com.example.discover.DiscoverApplication
 import com.example.discover.datamodel.credit.Credit
 import com.example.discover.datamodel.images.Images
 import com.example.discover.datamodel.tvshow.detail.Season
-import okhttp3.ResponseBody
+import com.example.discover.searchScreen.OnNetworkLostListener
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
 
 class SeasonViewModel(private val mApplication: Application) : AndroidViewModel(mApplication) {
 
@@ -27,6 +24,8 @@ class SeasonViewModel(private val mApplication: Application) : AndroidViewModel(
     var crewPosition = 0
     var episodePosition = 0
 
+    var onNetworkLostListener: OnNetworkLostListener? = null
+
     fun fetchCreditDetails(showId: Int, seasonNumber: Int): LiveData<Credit> {
         val call = getSeasonApiCall().credits(showId, seasonNumber)
         return sendCreditsRequest(call)
@@ -36,14 +35,18 @@ class SeasonViewModel(private val mApplication: Application) : AndroidViewModel(
         val credit = MutableLiveData<Credit>()
         call.enqueue(object : Callback<Credit> {
             override fun onFailure(call: Call<Credit>, t: Throwable) {
-                Log.d("ShowDetail", "Failure ${t.message} ${fetchErrorMessage(t.stackTrace)}")
+                onNetworkLostListener?.onNetworkDialog()
             }
 
             override fun onResponse(call: Call<Credit>, response: Response<Credit>) {
                 if (response.isSuccessful) {
+                    onNetworkLostListener?.onNetworkDialogDismiss()
                     this@SeasonViewModel.credit = response.body()!!
                     credit.postValue(response.body()!!)
-                } else Log.d("ShowDetail", "Error ${fetchErrorMessage(response.errorBody()!!)}")
+                } else Log.d(
+                    "ShowDetail",
+                    "Error ${(mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!)}"
+                )
             }
 
         })
@@ -60,14 +63,18 @@ class SeasonViewModel(private val mApplication: Application) : AndroidViewModel(
 
         call.enqueue(object : Callback<Season> {
             override fun onFailure(call: Call<Season>, t: Throwable) {
-                Log.d("ShowDetail", "Failure ${t.message} ${fetchErrorMessage(t.stackTrace)}")
+                onNetworkLostListener?.onNetworkDialog()
             }
 
             override fun onResponse(call: Call<Season>, response: Response<Season>) {
                 if (response.isSuccessful) {
+                    onNetworkLostListener?.onNetworkDialogDismiss()
                     this@SeasonViewModel.seasonDetails = response.body()!!
                     season.postValue(response.body()!!)
-                } else Log.d("ShowDetail", "Error ${fetchErrorMessage(response.errorBody()!!)}")
+                } else Log.d(
+                    "ShowDetail",
+                    "Error ${(mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!)}"
+                )
             }
 
         })
@@ -83,45 +90,21 @@ class SeasonViewModel(private val mApplication: Application) : AndroidViewModel(
         val images = MutableLiveData<Images>()
         call.enqueue(object : Callback<Images> {
             override fun onFailure(call: Call<Images>, t: Throwable) {
-                Log.d("MovieDetail", "Failure ${t.message}")
+                onNetworkLostListener?.onNetworkDialog()
             }
 
             override fun onResponse(call: Call<Images>, response: Response<Images>) {
                 if (response.isSuccessful) {
+                    onNetworkLostListener?.onNetworkDialogDismiss()
                     this@SeasonViewModel.images = response.body()!!
                     images.postValue(response.body()!!)
-                } else Log.d("MovieDetail", "Error ${fetchErrorMessage(response.errorBody()!!)}")
+                } else Log.d(
+                    "SeasonDetail",
+                    "Error ${(mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!)}"
+                )
             }
         })
         return images
-    }
-
-    private fun fetchErrorMessage(error: ResponseBody): String {
-        var reader: BufferedReader? = null
-        val sb = StringBuilder()
-        try {
-            reader =
-                BufferedReader(InputStreamReader(error.byteStream()))
-            var line: String? = ""
-            try {
-                while (reader.readLine().also { line = it } != null) {
-                    sb.append(line)
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        return sb.toString()
-    }
-
-    private fun fetchErrorMessage(error: Array<StackTraceElement>): String {
-        var sb = " "
-        for (i in error)
-            sb += "${i.className} ${i.fileName} ${i.isNativeMethod} ${i.methodName}\n"
-        return sb
     }
 
     private fun getSeasonApiCall() = (mApplication as DiscoverApplication).seasonApiCall
