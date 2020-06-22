@@ -2,7 +2,6 @@ package com.example.discover.category
 
 import android.app.Activity
 import android.content.Intent
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -25,7 +24,7 @@ import com.example.discover.mediaDisplay.MediaListActivity
 import com.example.discover.movieScreen.MovieActivity
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.showsScreen.ShowActivity
-import com.example.discover.util.LoadPoster
+import com.example.discover.util.LoadPosterImage
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.lang.ref.WeakReference
 
@@ -53,7 +52,8 @@ class CategoryListAdapter(
         val title: TextView = mediaView.findViewById(R.id.media_card_grid_title)
         val votingAverage: TextView = mediaView.findViewById(R.id.media_card_grid_voting_average)
         val votingBar: ProgressBar = mediaView.findViewById(R.id.media_card_grid_voting_bar)
-        var imageTask: LoadPoster? = null
+        //        var imageTask: LoadPoster? = null
+        var imageTask: LoadPosterImage? = null
 
         init {
             mediaView.setOnClickListener(this)
@@ -243,7 +243,7 @@ class CategoryListAdapter(
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         super.onViewRecycled(holder)
         if (holder is MediaWithTitleViewHolder)
-            holder.imageTask?.cancel(true)
+            holder.imageTask?.interruptThread()
     }
 
     private fun setPosterImage(holder: MediaWithTitleViewHolder, posterPath: String?) {
@@ -254,9 +254,11 @@ class CategoryListAdapter(
                 R.drawable.ic_media_placeholder
             )
         )
-        holder.imageTask?.cancel(true)
-        holder.imageTask = LoadPoster(WeakReference(holder.posterImage), activity)
-        holder.imageTask!!.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, posterPath)
+        holder.imageTask?.interruptThread()
+        holder.imageTask =
+            LoadPosterImage(posterPath, holder.posterImage, activity).apply { loadImage()
+            }
+//        holder.imageTask!!.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, posterPath)
     }
 
     private fun onBindMovie(holder: MediaWithTitleViewHolder, movie: MoviePreview) {

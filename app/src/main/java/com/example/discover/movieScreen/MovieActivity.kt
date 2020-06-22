@@ -2,7 +2,6 @@ package com.example.discover.movieScreen
 
 import android.content.Intent
 import android.net.Uri
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.view.Menu
@@ -39,7 +38,7 @@ import com.example.discover.firstScreen.OnGenreSelectedListener
 import com.example.discover.genreScreen.GenreMediaActivity
 import com.example.discover.mediaScreenUtils.*
 import com.example.discover.searchScreen.OnNetworkLostListener
-import com.example.discover.util.LoadPoster
+import com.example.discover.util.LoadPosterImage
 import com.example.discover.util.NetworkSnackbar
 import com.example.discover.util.NoSwipeBehavior
 import com.google.android.material.appbar.AppBarLayout
@@ -236,10 +235,9 @@ class MovieActivity : AppCompatActivity(),
 
             setGenres(genresForIds(genre_ids))
 
-            LoadPoster(
-                WeakReference(posterImage),
-                WeakReference(this@MovieActivity)
-            ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, poster_path)
+            LoadPosterImage(poster_path, posterImage, WeakReference(this@MovieActivity)).apply {
+                loadImage()
+            }
 
             if (overview != null && overview.isNotEmpty())
                 this@MovieActivity.overview.text = overview
@@ -247,7 +245,6 @@ class MovieActivity : AppCompatActivity(),
                 this@MovieActivity.overview.visibility = GONE
                 findViewById<View>(R.id.movie_detail_overview_heading).visibility = GONE
             }
-//            this@MovieActivity.overview.text = overview
             this@MovieActivity.rating.text = "${currentMovie.vote_average} "
             this@MovieActivity.tagLine.text = "Tagline: -"
             this@MovieActivity.title.text = title
@@ -257,14 +254,10 @@ class MovieActivity : AppCompatActivity(),
 
 
     private fun setMovieDetails(movieDetails: MovieDetails) {
-//        currentMovie = movieDetails
         infoDialog =
             InfoDialogFragment.newInfoInstance(createInfo(movieDetails), "More Information")
 
-        LoadPoster(
-            WeakReference(posterImage),
-            WeakReference(this)
-        ).execute(movieDetails.poster_path)
+        LoadPosterImage(movieDetails.poster_path, posterImage, WeakReference(this)).loadImage()
 
         title.text = movieDetails.title
         rating.text = "${movieDetails.vote_average} "
@@ -546,11 +539,11 @@ class MovieActivity : AppCompatActivity(),
                     images.backdrops,
                     WeakReference(this)
                 )
-        } else if (currentMovie != null && currentMovie!!.backdrop_path != null)
+        } else if (currentMovie.backdrop_path != null)
             backdropImage.adapter =
                 ImageAdapter(
                     true,
-                    listOf(ImageDetails(0.0, currentMovie!!.backdrop_path!!)),
+                    listOf(ImageDetails(0.0, currentMovie.backdrop_path!!)),
                     WeakReference(this)
                 )
         else backdropImage.adapter = ImageAdapter(true, null, WeakReference(this))

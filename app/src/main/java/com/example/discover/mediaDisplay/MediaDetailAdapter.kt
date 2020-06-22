@@ -2,13 +2,11 @@ package com.example.discover.mediaDisplay
 
 import android.app.Activity
 import android.content.Intent
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AlphaAnimation
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -28,7 +26,7 @@ import com.example.discover.firstScreen.GenreAdapter
 import com.example.discover.movieScreen.MovieActivity
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.showsScreen.ShowActivity
-import com.example.discover.util.LoadPoster
+import com.example.discover.util.LoadPosterImage
 import java.lang.ref.WeakReference
 
 
@@ -56,7 +54,7 @@ class MediaDetailAdapter(
         var mPosition: Int = 0
         var type = 1
         var isMovie: Boolean = true
-        var posterTask: LoadPoster? = null
+        var posterTask: LoadPosterImage? = null
         val poster: ImageView = medialDetailView.findViewById(R.id.media_layout_poster)
         val title: TextView = medialDetailView.findViewById(R.id.media_layout_title)
         val releaseDate: TextView = medialDetailView.findViewById(R.id.media_layout_release_date)
@@ -75,9 +73,9 @@ class MediaDetailAdapter(
                         1 -> movies[mPosition]
                         2 -> shows[mPosition]
                         else -> if (isMovie)
-                                formatToMoviesPreview(media[mPosition])
-                            else
-                                formatToShowsPreview(media[mPosition])
+                            formatToMoviesPreview(media[mPosition])
+                        else
+                            formatToShowsPreview(media[mPosition])
                     }
 
                     val key = if (isMovie) "movie" else "show"
@@ -250,13 +248,9 @@ class MediaDetailAdapter(
         genreIds: List<Int>, rating: Double
     ) {
         holder.poster.scaleType = ImageView.ScaleType.CENTER_INSIDE
-        holder.posterTask?.cancel(true)
-        holder.posterTask = LoadPoster(
-            WeakReference(
-                holder.poster
-            ), activity
-        ).apply {
-            executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, posterPath)
+        holder.posterTask?.interruptThread()
+        holder.posterTask = LoadPosterImage(posterPath, holder.poster, activity).apply {
+            loadImage()
         }
 
         val mRating = (rating * 10).toInt()

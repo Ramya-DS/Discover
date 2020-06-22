@@ -1,7 +1,6 @@
 package com.example.discover.showsScreen
 
 import android.app.Activity
-import android.os.AsyncTask
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.discover.R
 import com.example.discover.datamodel.tvshow.detail.Season
-import com.example.discover.util.LoadPoster
+import com.example.discover.util.LoadPosterImage
 import java.lang.ref.WeakReference
 
 class SeasonAdapter(private val activity: WeakReference<Activity>) :
@@ -26,6 +25,7 @@ class SeasonAdapter(private val activity: WeakReference<Activity>) :
         }
 
         var mPosition = 0
+        var imageTask: LoadPosterImage? = null
         val poster: ImageView = seasonView.findViewById(R.id.show_season_poster)
         val season: TextView = seasonView.findViewById(R.id.show_season)
         val episode: TextView = seasonView.findViewById(R.id.show_season_episode_count)
@@ -56,6 +56,7 @@ class SeasonAdapter(private val activity: WeakReference<Activity>) :
         val airDateText = "AirDate: ${season.air_date ?: '-'}"
         holder.airDate.text = airDateText
 
+        holder.imageTask?.interruptThread()
         holder.poster.scaleType = ImageView.ScaleType.CENTER_INSIDE
         holder.poster.setImageDrawable(
             ContextCompat.getDrawable(
@@ -64,10 +65,9 @@ class SeasonAdapter(private val activity: WeakReference<Activity>) :
             )
         )
         if (season.poster_path != null)
-            LoadPoster(
-                WeakReference(holder.poster),
-                activity
-            ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, season.poster_path)
+            holder.imageTask = LoadPosterImage(season.poster_path, holder.poster, activity).apply {
+                loadImage()
+            }
     }
 
 //    private fun setPlaceHolder(imageView: ImageView) {

@@ -2,7 +2,6 @@ package com.example.discover.showsScreen
 
 import android.app.Activity
 import android.graphics.Color
-import android.os.AsyncTask
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.Spanned
@@ -10,17 +9,15 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.discover.R
 import com.example.discover.datamodel.tvshow.detail.Episode
-import com.example.discover.util.LoadBackdrop
+import com.example.discover.util.LoadPosterImage
 import java.lang.ref.WeakReference
 
 
@@ -60,20 +57,15 @@ class EpisodeAdapter(
         holder.mPosition = position
 
         if (episode.still_path != null) {
-            LoadBackdrop(
-                WeakReference(holder.stillPath),
-                activity
-            ).executeOnExecutor(
-                AsyncTask.THREAD_POOL_EXECUTOR,
-                episode.still_path,
-                getWidth().toString(), true.toString()
-            )
+            LoadPosterImage(episode.still_path, holder.stillPath, activity).apply {
+                loadImage(getWidth()!!, (getWidth()!!.div(1.777777)).toInt(), true)
+            }
         }
 
         holder.name.text = episode.name
         holder.overview.text = episode.overview
         holder.rating.text = " ${episode.vote_average}  "
-        holder.airDate.text = "  ${episode.air_date?:'-'}"
+        holder.airDate.text = "  ${episode.air_date ?: '-'}"
     }
 
     private fun getWidth(): Int? {

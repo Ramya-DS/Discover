@@ -34,7 +34,7 @@ import com.example.discover.firstScreen.OnGenreSelectedListener
 import com.example.discover.genreScreen.GenreMediaActivity
 import com.example.discover.mediaScreenUtils.*
 import com.example.discover.searchScreen.OnNetworkLostListener
-import com.example.discover.util.LoadPoster
+import com.example.discover.util.LoadPosterImage
 import com.example.discover.util.NetworkSnackbar
 import com.example.discover.util.NoSwipeBehavior
 import com.google.android.material.appbar.AppBarLayout
@@ -76,6 +76,10 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_show)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.enterTransition = null
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             postponeEnterTransition()
@@ -184,10 +188,11 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 
     private fun assignIntentDataToViews() {
         currentShow.let {
-            LoadPoster(
-                WeakReference(this@ShowActivity.poster),
+            LoadPosterImage(
+                it.poster_path,
+                this@ShowActivity.poster,
                 WeakReference(this)
-            ).execute(it.poster_path)
+            ).loadImage()
             title.text = it.name
             rating.text = "  ${it.vote_average}"
             language.text = "Original Language: ${getLanguageName(it.original_language)} "
@@ -204,7 +209,7 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     }
 
     private fun setShowDetails(showDetails: ShowDetails) {
-        LoadPoster(WeakReference(poster), WeakReference(this)).execute(showDetails.poster_path)
+        LoadPosterImage(showDetails.poster_path, poster, WeakReference(this)).loadImage()
         title.text = showDetails.name
         rating.text = "  ${showDetails.vote_average}"
 

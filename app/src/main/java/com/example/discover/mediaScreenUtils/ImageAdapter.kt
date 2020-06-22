@@ -1,7 +1,6 @@
 package com.example.discover.mediaScreenUtils
 
 import android.app.Activity
-import android.os.AsyncTask
 import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
@@ -11,8 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.discover.R
 import com.example.discover.datamodel.images.ImageDetails
-import com.example.discover.util.LoadBackdrop
-import com.example.discover.util.LoadPoster
+import com.example.discover.util.LoadPosterImage
 import java.lang.ref.WeakReference
 
 class ImageAdapter(
@@ -47,18 +45,15 @@ class ImageAdapter(
         if (list != null) {
             if (isBackdrop) {
                 getWidth()?.let {
-                    LoadBackdrop(WeakReference(holder.image), activity).executeOnExecutor(
-                        AsyncTask.THREAD_POOL_EXECUTOR,
-                        list[position].file_path,
-                        it.toString(), true.toString()
-                    )
+                    LoadPosterImage(list[position].file_path, holder.image, activity).apply {
+                        loadImage(it, (it / 1.777777).toInt(), true)
+                    }
                 }
             } else {
                 holder.image.scaleType = ImageView.ScaleType.FIT_XY
-                LoadPoster(
-                    WeakReference(holder.image),
-                    activity
-                ).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, list[position].file_path)
+                LoadPosterImage(list[position].file_path, holder.image, activity).apply {
+                    loadImage()
+                }
             }
         }
     }

@@ -3,7 +3,6 @@ package com.example.discover.mediaScreenUtils
 import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.os.AsyncTask
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.discover.R
 import com.example.discover.datamodel.credit.cast.Cast
 import com.example.discover.datamodel.credit.crew.Crew
-import com.example.discover.util.LoadPoster
+import com.example.discover.util.LoadPosterImage
 import java.lang.ref.WeakReference
 
 class CreditAdapter(
@@ -26,7 +25,7 @@ class CreditAdapter(
     var castList = emptyList<Cast>()
 
     inner class CreditViewHolder(creditView: View) : RecyclerView.ViewHolder(creditView) {
-        var imageTask: LoadPoster? = null
+        var imageTask: LoadPosterImage? = null
         val image: ImageView = creditView.findViewById(R.id.credit_image)
         val name: TextView = creditView.findViewById(R.id.credit_name)
         val job: TextView = creditView.findViewById(R.id.credit_job)
@@ -47,14 +46,11 @@ class CreditAdapter(
             val crew = crewList[position]
             setPlaceHolder(holder.image)
             if (crew.profile_path != null) {
-                holder.imageTask?.cancel(true)
-                LoadPoster(WeakReference(holder.image), activity).apply {
-                    holder.imageTask = this
-                    executeOnExecutor(
-                        AsyncTask.THREAD_POOL_EXECUTOR,
-                        crew.profile_path
-                    )
-                }
+                holder.imageTask?.interruptThread()
+                holder.imageTask =
+                    LoadPosterImage(crew.profile_path, holder.image, activity).apply {
+                        loadImage()
+                    }
             }
             holder.name.text = crew.name
             holder.job.text = crew.job
@@ -63,16 +59,11 @@ class CreditAdapter(
 
             setPlaceHolder(holder.image)
             if (cast.profile_path != null) {
-                holder.imageTask?.cancel(true)
-                LoadPoster(WeakReference(holder.image), activity).apply {
-                    holder.imageTask = this
-                    executeOnExecutor(
-                        AsyncTask.THREAD_POOL_EXECUTOR,
-                        cast.profile_path,
-                        "100",
-                        "100"
-                    )
-                }
+                holder.imageTask?.interruptThread()
+                holder.imageTask =
+                    LoadPosterImage(cast.profile_path, holder.image, activity).apply {
+                        loadImage()
+                    }
             }
             holder.name.text = cast.name
             holder.job.text = cast.character
@@ -94,6 +85,6 @@ class CreditAdapter(
 
     override fun onViewRecycled(holder: CreditViewHolder) {
         super.onViewRecycled(holder)
-        holder.imageTask?.cancel(true)
+        holder.imageTask?.interruptThread()
     }
 }

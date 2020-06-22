@@ -2,7 +2,6 @@ package com.example.discover.firstScreen
 
 import android.content.Intent
 import android.graphics.Color
-import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.text.Spannable
@@ -12,7 +11,6 @@ import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
 import android.util.DisplayMetrics
-import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -28,7 +26,7 @@ import com.example.discover.category.MediaCategoryActivity
 import com.example.discover.filterScreen.ui.FilterActivity
 import com.example.discover.genreScreen.GenreMediaActivity
 import com.example.discover.searchScreen.SearchActivity
-import com.example.discover.util.LoadBackdrop
+import com.example.discover.util.LoadPosterImage
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import java.lang.ref.WeakReference
@@ -136,21 +134,13 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
     }
 
     private fun mediaCardInitiation() {
-        LoadBackdrop(
-            WeakReference(movieCard),
-            WeakReference(this)
-        ).executeOnExecutor(
-            AsyncTask.THREAD_POOL_EXECUTOR,
-            "orjiB3oUIsyz60hoEqkiGpy5CeO.jpg", getWidth().toString(), null
-        )
+        LoadPosterImage("orjiB3oUIsyz60hoEqkiGpy5CeO.jpg", movieCard, WeakReference(this)).apply {
+            loadImage(getWidth(), (getWidth() / 1.7777).toInt(), false)
+        }
 
-        LoadBackdrop(
-            WeakReference(showCard),
-            WeakReference(this)
-        ).executeOnExecutor(
-            AsyncTask.THREAD_POOL_EXECUTOR,
-            "56v2KjBlU4XaOv9rVYEQypROD7P.jpg", getWidth().toString(), null
-        )
+        LoadPosterImage("56v2KjBlU4XaOv9rVYEQypROD7P.jpg", showCard, WeakReference(this)).apply {
+            loadImage(getWidth(), (getWidth() / 1.7777).toInt(), false)
+        }
     }
 
     private fun getWidth(): Int {
