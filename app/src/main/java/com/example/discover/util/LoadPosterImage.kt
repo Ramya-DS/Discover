@@ -238,15 +238,16 @@ class LoadPosterImage(
             if (it != null) {
                 imageView.scaleType = ImageView.ScaleType.CENTER_CROP
                 imageView.setImageBitmap(it)
-            } else {
-                imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
-                imageView.setImageDrawable(
-                    ContextCompat.getDrawable(
-                        imageView.context,
-                        R.drawable.ic_media_placeholder
-                    )
-                )
             }
+//            else {
+//                imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+//                imageView.setImageDrawable(
+//                    ContextCompat.getDrawable(
+//                        imageView.context,
+//                        R.drawable.ic_media_placeholder
+//                    )
+//                )
+//            }
         }
     }
 }
