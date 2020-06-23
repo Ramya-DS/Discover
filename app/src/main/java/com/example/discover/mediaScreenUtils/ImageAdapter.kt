@@ -46,7 +46,7 @@ class ImageAdapter(
             if (isBackdrop) {
                 getWidth()?.let {
                     LoadPosterImage(list[position].file_path, holder.image, activity).apply {
-                        loadImage(it, (it / 1.777777).toInt(), true)
+                        loadImage(it, true)
                     }
                 }
             } else {

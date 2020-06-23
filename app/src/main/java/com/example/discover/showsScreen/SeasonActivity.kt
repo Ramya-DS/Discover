@@ -2,6 +2,7 @@ package com.example.discover.showsScreen
 
 import android.app.ProgressDialog
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.Menu
 import android.view.View
@@ -13,7 +14,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
+import com.example.discover.DiscoverApplication
 import com.example.discover.R
 import com.example.discover.datamodel.credit.Credit
 import com.example.discover.datamodel.credit.cast.Cast
@@ -28,17 +31,24 @@ import com.example.discover.mediaScreenUtils.InfoDialogFragment
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.util.ExpandableTextView
 import com.example.discover.util.NetworkSnackbar
+import com.example.discover.util.NoSwipeBehavior
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import java.lang.ref.WeakReference
+import java.util.*
+import kotlin.math.abs
 
 class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkLostListener {
 
     private var showId: Int = 0
     private lateinit var showName: String
 
+    private var flag = 1
+    private lateinit var handler: Handler
+
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var coordinatorLayout: CoordinatorLayout
     private lateinit var poster: ViewPager2
     private lateinit var tabLayout: TabLayout
@@ -50,7 +60,8 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     private lateinit var currentSeason: Season
 
     private lateinit var progressDialog: ProgressDialog
-    var snackBar: NetworkSnackbar? = null
+    private var viewPagerCallback: ViewPager2.OnPageChangeCallback? = null
+    private var snackBar: NetworkSnackbar? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,6 +77,15 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
         fetchIntentData()
 
         bindActivity(savedInstanceState)
+
+        swipeRefreshLayout = findViewById(R.id.season_swipe_refresh)
+        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
+        swipeRefreshLayout.setOnRefreshListener {
+            Handler().postDelayed({
+                loadDetailsFromNetwork()
+                swipeRefreshLayout.isRefreshing = false
+            }, 1000)
+        }
 
     }
 
@@ -97,17 +117,24 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
         toolbar.title = text
 
         if (savedInstanceState == null) {
-            viewModel.seasonDetails(showId, currentSeason.season_number).observe(this, Observer {
-                setSeasonDetails(it)
-            })
-            viewModel.fetchCreditDetails(showId, currentSeason.season_number)
-                .observe(this, Observer {
-                    setCreditDetails(it)
-                })
-            viewModel.fetchImages(showId, currentSeason.season_number).observe(this, Observer {
-                setImages(it)
-            })
+            loadDetailsFromNetwork()
         }
+    }
+
+    private fun loadDetailsFromNetwork() {
+        viewModel.seasonDetails(showId, currentSeason.season_number).observe(this, Observer {
+            flag = flag shl 1
+            setSeasonDetails(it)
+        })
+        viewModel.fetchCreditDetails(showId, currentSeason.season_number)
+            .observe(this, Observer {
+                flag = flag shl 1
+                setCreditDetails(it)
+            })
+        viewModel.fetchImages(showId, currentSeason.season_number).observe(this, Observer {
+            flag = flag shl 1
+            setImages(it)
+        })
     }
 
     private fun fetchIntentData() {
@@ -205,9 +232,24 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     private fun setImages(images: Images) {
         poster.orientation = ViewPager2.ORIENTATION_HORIZONTAL
 
+        poster.setPageTransformer { page, position ->
+            when {
+                position < -1 ->
+                    page.alpha = 0.1f
+                position <= 1 -> {
+                    page.alpha = 0.2f.coerceAtLeast(1 - abs(position))
+                }
+                else -> page.alpha = 0.1f
+            }
+        }
+
+        var total = 0
+
         if (images.posters != null && images.posters.isNotEmpty()) {
+            total = images.posters.size
             poster.adapter = ImageAdapter(false, images.posters, WeakReference(this))
         } else if (currentSeason.poster_path != null) {
+            total = 1
             poster.adapter = ImageAdapter(
                 false, listOf(ImageDetails(0.0, currentSeason.poster_path!!)),
                 WeakReference(this)
@@ -220,6 +262,21 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
         }.attach()
 
         progressDialog.dismiss()
+
+        automaticPageChange(total)
+
+//        viewPagerCallback = object : ViewPager2.OnPageChangeCallback() {
+//
+//            override fun onPageSelected(position: Int) {
+//                if (position == 0) {
+//                    automaticPageChange(total)
+//                }
+//                super.onPageSelected(position)
+//
+//            }
+//        }
+
+//        poster.registerOnPageChangeCallback(viewPagerCallback!!)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -264,11 +321,67 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     }
 
     override fun onNetworkDialog() {
-        snackBar = NetworkSnackbar.make(coordinatorLayout)
+        snackBar = if ((application as DiscoverApplication).checkConnectivity()) {
+            if (flag < 8)
+                NetworkSnackbar.make(
+                    coordinatorLayout,
+                    "Poor Network Detected. Please check connectivity and refresh the screen"
+                ).setBehavior(NoSwipeBehavior())
+            else null
+        } else
+            NetworkSnackbar.make(coordinatorLayout).setBehavior(NoSwipeBehavior())
+
         snackBar?.show()
     }
 
     override fun onNetworkDialogDismiss() {
         snackBar?.dismiss()
     }
+
+    private fun automaticPageChange(total: Int) {
+        var currentPage = 0
+
+        var move = true
+
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+//                Log.d("onTabReselected", "${tab?.position} $currentPage")
+//                move = tab?.position == currentPage
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                Log.d("onTabSelected", "${(tab?.position)?.plus(1)} $currentPage")
+                move = tab?.position?.plus(1) == currentPage
+            }
+
+        })
+
+        handler = Handler()
+
+        val update = Runnable {
+            if (currentPage == total) {
+                return@Runnable
+            }
+            if (move)
+                poster.setCurrentItem(currentPage++, true);
+        }
+
+        Timer().schedule(object : TimerTask() {
+            override fun run() {
+                handler.post(update)
+            }
+        }, 500, 5000)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacksAndMessages(null)
+//        viewPagerCallback?.let {
+//            poster.unregisterOnPageChangeCallback(it)
+//        }
+    }
+
 }

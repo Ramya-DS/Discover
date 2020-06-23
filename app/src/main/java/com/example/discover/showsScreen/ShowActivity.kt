@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -15,6 +16,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.discover.DiscoverApplication
 import com.example.discover.R
@@ -43,12 +45,14 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import java.lang.ref.WeakReference
+import java.util.*
 import kotlin.math.abs
 
 class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedListener,
     OnNetworkLostListener, OnGenreSelectedListener {
 
     private lateinit var coordinatorLayout: CoordinatorLayout
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var appBarLayout: AppBarLayout
     private lateinit var tabLayout: TabLayout
     private lateinit var collapsingToolbarLayout: CollapsingToolbarLayout
@@ -63,7 +67,11 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     private lateinit var language: TextView
     private lateinit var overview: TextView
 
+    private var flag = 1
+    private lateinit var handler: Handler
+
     private lateinit var createdBy: RecyclerView
+    private var viewPagerCallback: ViewPager2.OnPageChangeCallback? = null
 
     private lateinit var allLanguage: List<Language>
 
@@ -88,6 +96,15 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         fetchIntentData()
 
         bindActivity(savedInstanceState)
+
+        swipeRefreshLayout = findViewById(R.id.show_detail_swipe_refresh)
+        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
+        swipeRefreshLayout.setOnRefreshListener {
+            Handler().postDelayed({
+                loadDataFromNetwork()
+                swipeRefreshLayout.isRefreshing = false
+            }, 1000)
+        }
 
         appBarLayout = findViewById(R.id.show_detail_appbar)
         collapsingToolbarLayout = findViewById<CollapsingToolbarLayout>(R.id.show_detail_collapsing)
@@ -114,8 +131,10 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
                 if (abs(verticalOffset) == appBarLayout.totalScrollRange) {
                     toolbar.background = ContextCompat.getDrawable(this, R.drawable.main_background)
                     collapsingToolbarLayout.title = currentShow.name
+                    swipeRefreshLayout.isEnabled = false
                 } else if (verticalOffset == 0) {
                     collapsingToolbarLayout.title = " "
+                    swipeRefreshLayout.isEnabled = true
                 } else {
                     collapsingToolbarLayout.title = " "
                     toolbar.background = null
@@ -156,34 +175,45 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         })
 
         if (savedInstanceState == null) {
-            viewModel.showDetails(currentShow.id).observe(this, Observer {
-                setShowDetails(it)
-            })
-
-            viewModel.fetchCredits(currentShow.id).observe(this, Observer {
-                setCredits(it)
-            })
-
-            viewModel.getKeywords(currentShow.id).observe(this, Observer {
-                if (it == null) setKeywords(emptyList()) else setKeywords(it)
-            })
-
-            viewModel.fetchRecommendations(currentShow.id).observe(this, Observer {
-                setRecommendations(it)
-            })
-
-            viewModel.fetchSimilarShows(currentShow.id).observe(this, Observer {
-                setSimilarShows(it)
-            })
-
-            viewModel.fetchReviews(currentShow.id).observe(this, Observer {
-                setReviews(it)
-            })
-
-            viewModel.fetchImages(currentShow.id).observe(this, Observer {
-                setImages(it)
-            })
+            loadDataFromNetwork()
         }
+    }
+
+    private fun loadDataFromNetwork() {
+        viewModel.showDetails(currentShow.id).observe(this, Observer {
+            flag = flag shl 1
+            setShowDetails(it)
+        })
+
+        viewModel.fetchCredits(currentShow.id).observe(this, Observer {
+            flag = flag shl 1
+            setCredits(it)
+        })
+
+        viewModel.getKeywords(currentShow.id).observe(this, Observer {
+            flag = flag shl 1
+            if (it == null) setKeywords(emptyList()) else setKeywords(it)
+        })
+
+        viewModel.fetchRecommendations(currentShow.id).observe(this, Observer {
+            flag = flag shl 1
+            setRecommendations(it)
+        })
+
+        viewModel.fetchSimilarShows(currentShow.id).observe(this, Observer {
+            flag = flag shl 1
+            setSimilarShows(it)
+        })
+
+        viewModel.fetchReviews(currentShow.id).observe(this, Observer {
+            flag = flag shl 1
+            setReviews(it)
+        })
+
+        viewModel.fetchImages(currentShow.id).observe(this, Observer {
+            flag = flag shl 1
+            setImages(it)
+        })
     }
 
     private fun assignIntentDataToViews() {
@@ -436,10 +466,25 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 
     private fun setImages(images: Images) {
         backdrop.orientation = ViewPager2.ORIENTATION_HORIZONTAL
+
+        backdrop.setPageTransformer { page, position ->
+            when {
+                position < -1 ->
+                    page.alpha = 0.1f
+                position <= 1 -> {
+                    page.alpha = 0.2f.coerceAtLeast(1 - abs(position))
+                }
+                else -> page.alpha = 0.1f
+            }
+        }
+
+        var total = 0
         backdrop.adapter =
             if (images.backdrops != null && images.backdrops.isNotEmpty()) {
+                total = images.backdrops.size
                 ImageAdapter(true, images.backdrops, WeakReference(this))
             } else if (currentShow.backdrop_path != null) {
+                total = 1
                 ImageAdapter(
                     true,
                     listOf(ImageDetails(0.0, currentShow.backdrop_path!!)),
@@ -453,6 +498,59 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         { tab, _ ->
             backdrop.setCurrentItem(tab.position, true)
         }.attach()
+
+        automaticPageChange(total)
+//        viewPagerCallback = object : ViewPager2.OnPageChangeCallback() {
+//
+//            override fun onPageSelected(position: Int) {
+//                if (position == 0) {
+//                    automaticPageChange(total)
+//                }
+//                super.onPageSelected(position)
+//
+//            }
+//        }
+//        backdrop.registerOnPageChangeCallback(viewPagerCallback!!)
+
+
+    }
+
+    private fun automaticPageChange(total: Int) {
+        var currentPage = 0
+
+        var move = true
+
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+//                Log.d("onTabReselected", "${tab?.position} $currentPage")
+//                move = tab?.position == currentPage
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                Log.d("onTabSelected", "${(tab?.position)?.plus(1)} $currentPage")
+                move = tab?.position?.plus(1) == currentPage
+            }
+
+        })
+
+        handler = Handler()
+
+        val update = Runnable {
+            if (currentPage == total) {
+                return@Runnable
+            }
+            if (move)
+                backdrop.setCurrentItem(currentPage++, true);
+        }
+
+        Timer().schedule(object : TimerTask() {
+            override fun run() {
+                handler.post(update)
+            }
+        }, 500, 5000)
     }
 
     override fun onNetworkLostFragment() {
@@ -460,9 +558,16 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     }
 
     override fun onNetworkDialog() {
-        if (snackbar == null)
-            snackbar = NetworkSnackbar.make(coordinatorLayout)
-                .setBehavior(NoSwipeBehavior())
+        snackbar = if ((application as DiscoverApplication).checkConnectivity()) {
+            if (flag < 128)
+                NetworkSnackbar.make(
+                    coordinatorLayout,
+                    "Poor Network Detected. Please check connectivity and refresh the screen"
+                ).setBehavior(NoSwipeBehavior())
+            else
+                null
+        } else
+            NetworkSnackbar.make(coordinatorLayout).setBehavior(NoSwipeBehavior())
 
         snackbar?.show()
     }
@@ -554,5 +659,16 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
                 genreList.add(i)
         return genreList
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.handler.removeCallbacksAndMessages(null)
+        viewModel.handler.looper.quit()
+        handler.removeCallbacksAndMessages(null)
+//        viewPagerCallback?.let {
+//            backdrop.unregisterOnPageChangeCallback(it)
+//        }
+    }
+
 }
 

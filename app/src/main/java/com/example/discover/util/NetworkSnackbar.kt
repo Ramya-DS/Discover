@@ -3,6 +3,7 @@ package com.example.discover.util
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.example.discover.R
 import com.google.android.material.snackbar.BaseTransientBottomBar
@@ -24,7 +25,7 @@ class NetworkSnackbar(
 
     companion object {
 
-        fun make(view: View): NetworkSnackbar {
+        fun make(view: View, customText: String = ""): NetworkSnackbar {
             val parent = view.findSuitableParent() ?: throw IllegalArgumentException(
                 "No suitable parent found from the given view. Please provide a valid view."
             )
@@ -33,6 +34,11 @@ class NetworkSnackbar(
                 parent,
                 false
             ) as NetworkSnackBarView
+
+            if (customText.isNotEmpty()) {
+                val text: TextView = customView.findViewById(R.id.no_network_message)
+                text.text = customText
+            }
 
             return NetworkSnackbar(
                 parent,

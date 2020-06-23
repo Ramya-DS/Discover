@@ -58,7 +58,7 @@ class EpisodeAdapter(
 
         if (episode.still_path != null) {
             LoadPosterImage(episode.still_path, holder.stillPath, activity).apply {
-                loadImage(getWidth()!!, (getWidth()!!.div(1.777777)).toInt(), true)
+                loadImage(getWidth()!!, true)
             }
         }
 

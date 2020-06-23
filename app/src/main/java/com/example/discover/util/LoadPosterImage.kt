@@ -73,9 +73,11 @@ class LoadPosterImage(
         setPosterImageToView()
     }
 
-    fun loadImage(width: Int, height: Int, saveToCache: Boolean) {
+    fun loadImage(width: Int, saveToCache: Boolean) {
         executors.execute {
             try {
+                val height = (width / 1.777777).toInt()
+                Log.d("Backdrop", "$width $height")
                 thread = Thread.currentThread()
                 val inputStream: InputStream?
                 if (url != null) {
@@ -95,6 +97,51 @@ class LoadPosterImage(
                         inputStream = URL(url).openStream()
                         mBitmap = inputStream?.let {
                             createScaledBitmapFromStream(inputStream, width, height).apply {
+                                Log.d("Backdrop from url", "$width $height")
+                                bitmap.postValue(this)
+                            }
+                        }
+                        if (mBitmap != null) {
+                            if (saveToCache)
+                                handler.post { writeToCache(key, mBitmap, app) }
+                            else
+                                handler.post { writeInMemory(key, mBitmap, app) }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.d("LoadImage", "Error occurred. ${e.message}")
+            }
+        }
+        setBackdropImageToView()
+    }
+
+    fun loadCreditImage(saveToCache: Boolean) {
+        executors.execute {
+            try {
+                val width = 100
+                val height = 100
+                Log.d("Backdrop", "$width $height")
+                thread = Thread.currentThread()
+                val inputStream: InputStream?
+                if (url != null) {
+                    val app = (activity.get()?.application as DiscoverApplication)
+                    val key = createKey(url)
+
+                    var mBitmap =
+                        if (!saveToCache) checkInMemory(key, app) else checkInCache(key, app)
+
+                    mBitmap.apply {
+                        bitmap.postValue(this)
+                    }
+
+                    if (mBitmap == null) {
+                        val url = "https://image.tmdb.org/t/p/w780/$url"
+
+                        inputStream = URL(url).openStream()
+                        mBitmap = inputStream?.let {
+                            createScaledBitmapFromStream(inputStream, width, height).apply {
+                                Log.d("Backdrop from url", "$width $height")
                                 bitmap.postValue(this)
                             }
                         }
@@ -236,18 +283,18 @@ class LoadPosterImage(
     private fun setBackdropImageToView() {
         bitmap.observeForever {
             if (it != null) {
+                Log.d("setBackdropImageToView", "${imageView.width} ${imageView.height}")
                 imageView.scaleType = ImageView.ScaleType.CENTER_CROP
                 imageView.setImageBitmap(it)
+            } else {
+                imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                imageView.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        imageView.context,
+                        R.drawable.ic_media_placeholder
+                    )
+                )
             }
-//            else {
-//                imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
-//                imageView.setImageDrawable(
-//                    ContextCompat.getDrawable(
-//                        imageView.context,
-//                        R.drawable.ic_media_placeholder
-//                    )
-//                )
-//            }
         }
     }
 }

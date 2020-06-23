@@ -37,8 +37,6 @@ class CategoryViewModel(private val mApplication: Application) : AndroidViewMode
         const val AIRING_TODAY = 7
     }
 
-//    var networkFragment = false
-
     var movies = hashMapOf<Int, List<MoviePreview>>()
     var shows = hashMapOf<Int, List<ShowPreview>>()
 
@@ -59,7 +57,7 @@ class CategoryViewModel(private val mApplication: Application) : AndroidViewMode
     private val categoryDao: MediaCategoryDao =
         DiscoverDatabase.getDatabase(mApplication).mediaCategoryDao()
 
-    private val handlerThread = HandlerThread("insert").apply {
+    val handlerThread = HandlerThread("insert").apply {
         start()
     }
     val handler = Handler(handlerThread.looper)

@@ -49,7 +49,7 @@ class CreditAdapter(
                 holder.imageTask?.interruptThread()
                 holder.imageTask =
                     LoadPosterImage(crew.profile_path, holder.image, activity).apply {
-                        loadImage(100, 100, false)
+                        loadCreditImage(false)
                     }
             }
             holder.name.text = crew.name
@@ -62,7 +62,7 @@ class CreditAdapter(
                 holder.imageTask?.interruptThread()
                 holder.imageTask =
                     LoadPosterImage(cast.profile_path, holder.image, activity).apply {
-                        loadImage(100, 100, false)
+                        loadCreditImage(false)
                     }
             }
             holder.name.text = cast.name

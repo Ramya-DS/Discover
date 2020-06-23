@@ -4,6 +4,8 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -19,6 +21,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.discover.DiscoverApplication
 import com.example.discover.R
@@ -47,12 +50,15 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import java.lang.ref.WeakReference
+import java.util.*
 import kotlin.math.abs
 
 class MovieActivity : AppCompatActivity(),
     OnReviewClickListener,
     OnUrlSelectedListener, OnNetworkLostListener, OnGenreSelectedListener {
 
+    private var viewPagerCallback: ViewPager2.OnPageChangeCallback? = null
+    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var coordinatorLayout: CoordinatorLayout
     private lateinit var appBarLayout: AppBarLayout
     private lateinit var tabLayout: TabLayout
@@ -68,6 +74,8 @@ class MovieActivity : AppCompatActivity(),
     private lateinit var status: TextView
     private lateinit var infoButton: ImageButton
 
+    private var flag = 1
+    private lateinit var timer: TimerTask
 
     private lateinit var cast: RecyclerView
     private lateinit var crew: RecyclerView
@@ -89,13 +97,23 @@ class MovieActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movie_detail)
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             postponeEnterTransition()
         }
 
         fetchIntentData()
         bindActivity(savedInstanceState)
+
+        swipeRefreshLayout = findViewById(R.id.movie_detail_swipe_refresh)
+        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
+        swipeRefreshLayout.setOnRefreshListener {
+            Handler().postDelayed({
+                flag = 1
+                timer.cancel()
+                loadDetailsFromNetwork()
+                swipeRefreshLayout.isRefreshing = false
+            }, 1000)
+        }
 
         appBarLayout = findViewById(R.id.movie_detail_app_bar)
         collapsingToolbarLayout = findViewById(R.id.movie_detail_collapsing)
@@ -122,8 +140,10 @@ class MovieActivity : AppCompatActivity(),
                     toolbar.background = ContextCompat.getDrawable(this, R.drawable.main_background)
                     collapsingToolbarLayout.title = currentMovie.title
                     infoItem?.isVisible = true
+                    swipeRefreshLayout.isEnabled = false
                 } else if (verticalOffset == 0) {
                     collapsingToolbarLayout.title = " "
+                    swipeRefreshLayout.isEnabled = true
                     infoItem?.isVisible = false
                 } else {
                     collapsingToolbarLayout.title = " "
@@ -186,39 +206,50 @@ class MovieActivity : AppCompatActivity(),
         })
 
         if (savedInstanceState == null) {
-
-            viewModel.movieDetails(currentMovie.id).observe(this, Observer {
-                setMovieDetails(it)
-            })
-
-            viewModel.fetchCredits(currentMovie.id).observe(this, Observer {
-                setCredits(it)
-            })
-
-            viewModel.getKeywords(currentMovie.id).observe(this, Observer {
-                setKeywords(it)
-            })
-
-            viewModel.fetchRecommendations(currentMovie.id).observe(this, Observer {
-                setRecommendations(it)
-            })
-
-            viewModel.fetchSimilarMovies(currentMovie.id).observe(this, Observer {
-                setSimilarMovies(it)
-            })
-
-            viewModel.fetchReviews(currentMovie.id).observe(this, Observer {
-                setReviews(it)
-            })
-
-            viewModel.fetchExternalIds(currentMovie.id).observe(this, Observer {
-                setExternalIds(it)
-            })
-
-            viewModel.fetchImages(currentMovie.id).observe(this, Observer {
-                setImages(it)
-            })
+            loadDetailsFromNetwork()
         }
+    }
+
+    private fun loadDetailsFromNetwork() {
+        viewModel.movieDetails(currentMovie.id).observe(this, Observer {
+            flag = flag shl 1
+            setMovieDetails(it)
+        })
+
+        viewModel.fetchCredits(currentMovie.id).observe(this, Observer {
+            flag = flag shl 1
+            setCredits(it)
+        })
+
+        viewModel.getKeywords(currentMovie.id).observe(this, Observer {
+            flag = flag shl 1
+            setKeywords(it)
+        })
+
+        viewModel.fetchRecommendations(currentMovie.id).observe(this, Observer {
+            flag = flag shl 1
+            setRecommendations(it)
+        })
+
+        viewModel.fetchSimilarMovies(currentMovie.id).observe(this, Observer {
+            flag = flag shl 1
+            setSimilarMovies(it)
+        })
+
+        viewModel.fetchReviews(currentMovie.id).observe(this, Observer {
+            flag = flag shl 1
+            setReviews(it)
+        })
+
+        viewModel.fetchExternalIds(currentMovie.id).observe(this, Observer {
+            flag = flag shl 1
+            setExternalIds(it)
+        })
+
+        viewModel.fetchImages(currentMovie.id).observe(this, Observer {
+            flag = flag shl 1
+            setImages(it)
+        })
     }
 
     private fun assignIntentDataToViews() {
@@ -531,31 +562,102 @@ class MovieActivity : AppCompatActivity(),
 
     private fun setImages(images: Images?) {
         backdropImage.orientation = ViewPager2.ORIENTATION_HORIZONTAL
+        backdropImage.setPageTransformer { page, position ->
+            when {
+                position < -1 ->
+                    page.alpha = 0.1f
+                position <= 1 -> {
+                    page.alpha = 0.2f.coerceAtLeast(1 - abs(position))
+                }
+                else -> page.alpha = 0.1f
+            }
+        }
 
+        var total = 0
         if (images?.backdrops != null && images.backdrops.isNotEmpty()) {
+            total = images.backdrops.size
             backdropImage.adapter =
                 ImageAdapter(
                     true,
                     images.backdrops,
                     WeakReference(this)
                 )
-        } else if (currentMovie.backdrop_path != null)
+        } else if (currentMovie.backdrop_path != null) {
+            total = 1
             backdropImage.adapter =
                 ImageAdapter(
                     true,
                     listOf(ImageDetails(0.0, currentMovie.backdrop_path!!)),
                     WeakReference(this)
                 )
-        else backdropImage.adapter = ImageAdapter(true, null, WeakReference(this))
+        } else
+            backdropImage.adapter = ImageAdapter(true, null, WeakReference(this))
+
         TabLayoutMediator(tabLayout, backdropImage) { tab, _ ->
             backdropImage.setCurrentItem(tab.position, true)
         }.attach()
+
+        automaticPageChange(total)
+//        viewPagerCallback = object : ViewPager2.OnPageChangeCallback() {
+//
+//            override fun onPageSelected(position: Int) {
+//                if (position == 0) {
+//                    automaticPageChange(total)
+//                }
+//                super.onPageSelected(position)
+//
+//            }
+//        }
+//        backdropImage.registerOnPageChangeCallback(viewPagerCallback!!)
+    }
+
+    private fun automaticPageChange(total: Int) {
+        var currentPage = 0
+
+        var move = true
+
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabReselected(tab: TabLayout.Tab?) {
+//                Log.d("onTabReselected", "${tab?.position} $currentPage")
+//                move = tab?.position == currentPage
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+            }
+
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                Log.d("onTabSelected", "${(tab?.position)?.plus( 1)} $currentPage")
+                move = tab?.position?.plus(1) == currentPage
+            }
+
+        })
+
+        val handler = Handler()
+
+        val update = Runnable {
+            if (currentPage == total) {
+                return@Runnable
+            }
+            if (move)
+                backdropImage.setCurrentItem(currentPage++, true);
+        }
+
+        timer = object : TimerTask() {
+            override fun run() {
+                handler.post(update)
+            }
+        }
+
+        Timer().schedule(timer, 500, 5000)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         viewModel.handler.removeCallbacksAndMessages(null)
         viewModel.handler.looper.quit()
+//        viewPagerCallback?.let {
+//            backdropImage.unregisterOnPageChangeCallback(it)
+//        }
     }
 
     override fun onNetworkLostFragment() {
@@ -563,9 +665,17 @@ class MovieActivity : AppCompatActivity(),
     }
 
     override fun onNetworkDialog() {
-        if (snackbar == null)
-            snackbar = NetworkSnackbar.make(coordinatorLayout)
-                .setBehavior(NoSwipeBehavior())
+        snackbar = if ((application as DiscoverApplication).checkConnectivity()) {
+            if (flag < 256)
+                NetworkSnackbar.make(
+                    coordinatorLayout,
+                    "Poor Network Detected. Please check connectivity and refresh the screen"
+                ).setBehavior(NoSwipeBehavior())
+            else
+                null
+        } else
+            NetworkSnackbar.make(coordinatorLayout).setBehavior(NoSwipeBehavior())
+
         snackbar?.show()
     }
 

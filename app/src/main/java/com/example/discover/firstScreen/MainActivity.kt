@@ -135,11 +135,11 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
 
     private fun mediaCardInitiation() {
         LoadPosterImage("orjiB3oUIsyz60hoEqkiGpy5CeO.jpg", movieCard, WeakReference(this)).apply {
-            loadImage(getWidth(), (getWidth() / 1.7777).toInt(), false)
+            loadImage(getWidth(), false)
         }
 
         LoadPosterImage("56v2KjBlU4XaOv9rVYEQypROD7P.jpg", showCard, WeakReference(this)).apply {
-            loadImage(getWidth(), (getWidth() / 1.7777).toInt(), false)
+            loadImage(getWidth(), false)
         }
     }
 

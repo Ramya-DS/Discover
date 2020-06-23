@@ -57,7 +57,8 @@ class ShowViewModel(private val mApplication: Application) : AndroidViewModel(mA
     private val handlerThread = HandlerThread("insert").apply {
         start()
     }
-    private val handler = Handler(handlerThread.looper)
+
+    val handler = Handler(handlerThread.looper)
 
     private fun insertMovie(media: Media) {
         mediaDetailsDao.insertMedia(media)

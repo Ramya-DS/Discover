@@ -5,11 +5,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
-import android.net.ConnectivityManager.TYPE_WIFI
 import android.net.NetworkInfo
 import android.os.AsyncTask
 import android.os.Environment
-import android.provider.ContactsContract.CommonDataKinds.Email.TYPE_MOBILE
 import android.util.Log
 import androidx.collection.LruCache
 import androidx.lifecycle.LiveData
@@ -320,12 +318,37 @@ class DiscoverApplication : Application() {
 
     fun checkConnectivity(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        if (cm.getNetworkInfo(TYPE_MOBILE)?.state == NetworkInfo.State.CONNECTED
-            || cm.getNetworkInfo(TYPE_WIFI)?.state == NetworkInfo.State.CONNECTED
-        ) {
-            return true
+//        if (cm.getNetworkInfo(TYPE_MOBILE)?.state == NetworkInfo.State.CONNECTED
+//            || cm.getNetworkInfo(TYPE_WIFI)?.state == NetworkInfo.State.CONNECTED
+//        ) {
+//            Log.d("Connectivity","true")
+//            return true
+//
+//        }
+//        Log.d("Connectivity","false")
+//        return false
 
-        }
-        return false
+//        for (network in cm.allNetworks)
+//        { try
+//            {
+//                val info = cm.getNetworkInfo(network);
+//
+//                if (info == null || !info.isAvailable || info.subtype.HasFla(ConnectivityType.Dummy))
+//                    continue;
+//
+//                if (info.IsConnected)
+//                    return true;
+//            }
+//            catch
+//            {
+//                //there is a possibility, but don't worry
+//            }
+//        }
+//        return false;
+
+        val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+        Log.d("isConnected", isConnected.toString())
+        return isConnected
     }
 }

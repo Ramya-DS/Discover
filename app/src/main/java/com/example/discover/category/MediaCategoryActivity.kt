@@ -13,6 +13,7 @@ import com.example.discover.R
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.util.LoadingFragment
 import com.example.discover.util.NoInternetFragment
+import com.example.discover.util.NoMatchFragment
 import com.google.android.material.appbar.MaterialToolbar
 
 class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshListener,
@@ -109,6 +110,17 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
         }
     }
 
+    private fun displayNoResultFragment(containerId: Int) {
+        supportFragmentManager.beginTransaction()
+            .replace(containerId, NoMatchFragment(), "$containerId NO_RESULT").commit()
+    }
+
+    private fun removeNoResultFragment(containerId: Int) {
+        supportFragmentManager.findFragmentByTag("$containerId NO_RESULT")?.let {
+            supportFragmentManager.beginTransaction().remove(it).commit()
+        }
+    }
+
     private fun displayResultFragment(
         containerId: Int,
         category: String
@@ -123,11 +135,13 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
     }
 
     private fun setMovieResults(containerId: Int, category: String) {
+        removeNoResultFragment(containerId)
         removeLoadingFragment(containerId)
         displayResultFragment(containerId, category)
     }
 
     private fun setShowsResults(containerId: Int, category: String) {
+        removeNoResultFragment(containerId)
         removeLoadingFragment(containerId)
         displayResultFragment(containerId, category)
     }
@@ -150,30 +164,40 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
                             if (it.isNotEmpty()) {
                                 viewModel.movies[0] = it
                                 setMovieResults(containers[i].id, MOVIE_CATEGORY[0])
+                            } else {
+                                displayNoResultFragment(containers[i].id)
                             }
                         })
                         1 -> nowPlayingMoviesData().observe(this@MediaCategoryActivity, Observer {
                             if (it.isNotEmpty()) {
                                 viewModel.movies[1] = it
                                 setMovieResults(containers[i].id, MOVIE_CATEGORY[1])
+                            } else {
+                                displayNoResultFragment(containers[i].id)
                             }
                         })
                         2 -> popularMoviesData().observe(this@MediaCategoryActivity, Observer {
                             if (it.isNotEmpty()) {
                                 viewModel.movies[2] = it
                                 setMovieResults(containers[i].id, MOVIE_CATEGORY[2])
+                            } else {
+                                displayNoResultFragment(containers[i].id)
                             }
                         })
                         3 -> upcomingMoviesData().observe(this@MediaCategoryActivity, Observer {
                             if (it.isNotEmpty()) {
                                 viewModel.movies[3] = it
                                 setMovieResults(containers[i].id, MOVIE_CATEGORY[3])
+                            } else {
+                                displayNoResultFragment(containers[i].id)
                             }
                         })
                         4 -> topRatedMoviesData().observe(this@MediaCategoryActivity, Observer {
                             if (it.isNotEmpty()) {
                                 viewModel.movies[4] = it
                                 setMovieResults(containers[i].id, MOVIE_CATEGORY[4])
+                            } else {
+                                displayNoResultFragment(containers[i].id)
                             }
                         })
                     }
@@ -185,18 +209,24 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
                             if (it.isNotEmpty()) {
                                 viewModel.shows[0] = it
                                 setShowsResults(containers[i].id, TV_CATEGORY[0])
+                            } else {
+                                displayNoResultFragment(containers[i].id)
                             }
                         })
                         1 -> setOnAirShowsData().observe(this@MediaCategoryActivity, Observer {
                             if (it.isNotEmpty()) {
                                 viewModel.shows[1] = it
                                 setShowsResults(containers[i].id, TV_CATEGORY[1])
+                            } else {
+                                displayNoResultFragment(containers[i].id)
                             }
                         })
                         2 -> setPopularShowsData().observe(this@MediaCategoryActivity, Observer {
                             if (it.isNotEmpty()) {
                                 viewModel.shows[2] = it
                                 setShowsResults(containers[i].id, TV_CATEGORY[2])
+                            } else {
+                                displayNoResultFragment(containers[i].id)
                             }
                         })
                         3 -> setAiringTodayShowsData().observe(
@@ -205,12 +235,16 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
                                 if (it.isNotEmpty()) {
                                     viewModel.shows[3] = it
                                     setShowsResults(containers[i].id, TV_CATEGORY[3])
+                                } else {
+                                    displayNoResultFragment(containers[i].id)
                                 }
                             })
                         4 -> setTopRatedShowsData().observe(this@MediaCategoryActivity, Observer {
                             if (it.isNotEmpty()) {
                                 viewModel.shows[4] = it
                                 setShowsResults(containers[i].id, TV_CATEGORY[4])
+                            } else {
+                                displayNoResultFragment(containers[i].id)
                             }
                         })
                     }
@@ -333,4 +367,11 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
         super.onBackPressed()
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.handler.removeCallbacksAndMessages(null)
+        viewModel.handler.looper.quit()
+    }
+
 }
