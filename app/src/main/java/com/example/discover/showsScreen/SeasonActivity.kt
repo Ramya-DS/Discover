@@ -46,7 +46,8 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     private lateinit var showName: String
 
     private var flag = 1
-    private lateinit var handler: Handler
+    private var handler: Handler? = null
+    private var timer: TimerTask? = null
 
     //    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var coordinatorLayout: CoordinatorLayout
@@ -101,6 +102,7 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.refresh) {
             flag = 1
+            timer?.cancel()
             refreshingDialog = ProgressDialog(this)
             refreshingDialog?.setMessage("Refreshing")
             refreshingDialog?.setCancelable(false)
@@ -386,19 +388,20 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
             if (currentPage == total) {
                 return@Runnable
             }
-            poster.setCurrentItem(currentPage++, true);
+            poster.setCurrentItem(currentPage++, true)
         }
 
-        Timer().schedule(object : TimerTask() {
+        timer = object : TimerTask() {
             override fun run() {
-                handler.post(update)
+                handler?.post(update)
             }
-        }, 500, 5000)
+        }
+        Timer().schedule(timer, 500, 5000)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        handler.removeCallbacksAndMessages(null)
+        handler?.removeCallbacksAndMessages(null)
 //        viewPagerCallback?.let {
 //            poster.unregisterOnPageChangeCallback(it)
 //        }

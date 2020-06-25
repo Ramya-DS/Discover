@@ -77,6 +77,7 @@ class MovieActivity : AppCompatActivity(),
 
     private var flag = 1
     private var timer: TimerTask? = null
+    private var handler: Handler? = null
 
     private lateinit var cast: RecyclerView
     private lateinit var crew: RecyclerView
@@ -644,16 +645,16 @@ class MovieActivity : AppCompatActivity(),
             }
         })
 
-        val handler = Handler()
+        handler = Handler()
         val update = Runnable {
             if (currentPage == total) {
                 return@Runnable
             }
-            backdropImage.setCurrentItem(currentPage++, true);
+            backdropImage.setCurrentItem(currentPage++, true)
         }
         timer = object : TimerTask() {
             override fun run() {
-                handler.post(update)
+                handler?.post(update)
             }
         }
         Timer().schedule(timer, 500, 5000)
@@ -784,10 +785,8 @@ class MovieActivity : AppCompatActivity(),
         return true
     }
 
-    override fun onResume() {
-        super.onResume()
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-////            window?.exitTransition = Fade()
-//        }
+    override fun onDestroy() {
+        super.onDestroy()
+        handler?.removeCallbacksAndMessages(null)
     }
 }

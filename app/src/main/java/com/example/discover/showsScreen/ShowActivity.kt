@@ -72,7 +72,7 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     private lateinit var overview: TextView
 
     private var flag = 1
-//    private var handler: Handler? = null
+    private var handler: Handler? = null
 
     private var timer: TimerTask? = null
 
@@ -576,18 +576,18 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 
         })
 
-        val handler = Handler()
+        handler = Handler()
 
         val update = Runnable {
             if (currentPage == total) {
                 return@Runnable
             }
-            backdrop.setCurrentItem(currentPage++, true);
+            backdrop.setCurrentItem(currentPage++, true)
         }
 
         timer = object : TimerTask() {
             override fun run() {
-                handler.post(update)
+                handler?.post(update)
             }
         }
         Timer().schedule(timer, 500, 3000)
@@ -716,7 +716,7 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         super.onDestroy()
         viewModel.handler.removeCallbacksAndMessages(null)
         viewModel.handler.looper.quit()
-//        handler?.removeCallbacksAndMessages(null)
+        handler?.removeCallbacksAndMessages(null)
 //        viewPagerCallback?.let {
 //            backdrop.unregisterOnPageChangeCallback(it)
 //        }
