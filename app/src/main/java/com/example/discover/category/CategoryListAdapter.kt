@@ -79,7 +79,6 @@ class CategoryListAdapter(
                     val key = if (isMovie) "movie" else "show"
                     if (hasWindowFocus()) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) {
-                            window?.exitTransition = null
                             val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                                 this,
                                 posterImage as View,
@@ -88,8 +87,6 @@ class CategoryListAdapter(
                             startActivity(Intent(activity.get()!!, activityClass).apply {
                                 putExtra(key, media)
                             }, options.toBundle())
-
-//                            overridePendingTransition(0, 0)
                         } else {
                             startActivity(Intent(activity.get()!!, activityClass).apply {
                                 putExtra(key, media)
@@ -244,12 +241,6 @@ class CategoryListAdapter(
         result.dispatchUpdatesTo(this)
         mediaList.clear()
         mediaList.addAll(newList)
-    }
-
-    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-        super.onViewRecycled(holder)
-        if (holder is MediaWithTitleViewHolder)
-            holder.imageTask?.interruptThread()
     }
 
     private fun setPosterImage(holder: MediaWithTitleViewHolder, posterPath: String?) {

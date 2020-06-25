@@ -34,11 +34,6 @@ class GenreMediaViewModel(private val mApplication: Application) : AndroidViewMo
     var isLinear = true
     var position = 0
 
-    private val handlerThread = HandlerThread("insert").apply {
-        start()
-    }
-    private val handler = Handler(handlerThread.looper)
-
     private val genreMediaApiCall = (mApplication as DiscoverApplication).genreMediaApiCall
 
     private val categoryDao = DiscoverDatabase.getDatabase(mApplication).mediaCategoryDao()
@@ -88,7 +83,7 @@ class GenreMediaViewModel(private val mApplication: Application) : AndroidViewMo
     }
 
     private fun writeShowsPreviewsToDb(shows: List<ShowPreview>) {
-       handler.post{
+        (mApplication as DiscoverApplication).handler.post{
             for (i in shows) {
                 i.apply {
                     insertMedia(
@@ -114,7 +109,7 @@ class GenreMediaViewModel(private val mApplication: Application) : AndroidViewMo
     }
 
     fun writeMoviesPreviewsToDb(list: List<MoviePreview>) {
-        handler.post{
+        (mApplication as DiscoverApplication).handler.post{
             for (i in list) {
                 i.apply {
                     insertMedia(

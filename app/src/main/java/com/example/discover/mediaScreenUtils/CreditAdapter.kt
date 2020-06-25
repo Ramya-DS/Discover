@@ -82,9 +82,4 @@ class CreditAdapter(
         imageView.setImageBitmap(bitmap)
 
     }
-
-    override fun onViewRecycled(holder: CreditViewHolder) {
-        super.onViewRecycled(holder)
-        holder.imageTask?.interruptThread()
-    }
 }

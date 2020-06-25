@@ -3,7 +3,6 @@ package com.example.discover.category
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.transition.Fade
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -50,9 +49,10 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             postponeEnterTransition()
-            window.sharedElementsUseOverlay = true
-//            window.exitTransition = null
+            window.enterTransition = null
+            window.exitTransition = null
         }
+
         getIntentData()
 
         viewModel = ViewModelProvider(
@@ -106,22 +106,22 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
             .replace(containerId, LoadingFragment(), "$containerId LOAD").commit()
     }
 
-    private fun removeLoadingFragment(containerId: Int) {
-        supportFragmentManager.findFragmentByTag("$containerId LOAD")?.let {
-            supportFragmentManager.beginTransaction().remove(it).commit()
-        }
-    }
+//    private fun removeLoadingFragment(containerId: Int) {
+//        supportFragmentManager.findFragmentByTag("$containerId LOAD")?.let {
+//            supportFragmentManager.beginTransaction().remove(it).commit()
+//        }
+//    }
 
     private fun displayNoResultFragment(containerId: Int) {
         supportFragmentManager.beginTransaction()
             .replace(containerId, NoMatchFragment(), "$containerId NO_RESULT").commit()
     }
 
-    private fun removeNoResultFragment(containerId: Int) {
-        supportFragmentManager.findFragmentByTag("$containerId NO_RESULT")?.let {
-            supportFragmentManager.beginTransaction().remove(it).commit()
-        }
-    }
+//    private fun removeNoResultFragment(containerId: Int) {
+//        supportFragmentManager.findFragmentByTag("$containerId NO_RESULT")?.let {
+//            supportFragmentManager.beginTransaction().remove(it).commit()
+//        }
+//    }
 
     private fun displayResultFragment(
         containerId: Int,
@@ -137,14 +137,14 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
     }
 
     private fun setMovieResults(containerId: Int, category: String) {
-        removeNoResultFragment(containerId)
-        removeLoadingFragment(containerId)
+//        removeNoResultFragment(containerId)
+//        removeLoadingFragment(containerId)
         displayResultFragment(containerId, category)
     }
 
     private fun setShowsResults(containerId: Int, category: String) {
-        removeNoResultFragment(containerId)
-        removeLoadingFragment(containerId)
+//        removeNoResultFragment(containerId)
+//        removeLoadingFragment(containerId)
         displayResultFragment(containerId, category)
     }
 
@@ -152,7 +152,7 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
         Handler().postDelayed({
             loadData()
             swipeRefreshLayout.isRefreshing = false
-        }, 1000)
+        }, 500)
     }
 
     private fun loadData() {
@@ -358,41 +358,8 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
         }
     }
 
-//    override fun onSaveInstanceState(outState: Bundle) {
-//        super.onSaveInstanceState(outState)
-//        for (i in containers) {
-//            supportFragmentManager.findFragmentByTag("${i.id} RESULT")?.let {
-//                if (it is CategoryListResultFragment)
-//                    viewModel.positions.put(
-//                        i.id,
-//                        it.lastElementPosition()
-//                    )
-//            }
-//            supportFragmentManager.findFragmentById(i.id)?.let {
-//                if (it is CategoryListResultFragment)
-//                    viewModel.positions.put(
-//                        i.id,
-//                        it.lastElementPosition()
-//                    )
-//            }
-//        }
-//    }
-
     override fun onBackPressed() {
         super.onBackPressed()
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        viewModel.handler.removeCallbacksAndMessages(null)
-        viewModel.handler.looper.quit()
-    }
-
-    override fun onResume() {
-        super.onResume()
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            window?.exitTransition = Fade()
-//        }
     }
 }

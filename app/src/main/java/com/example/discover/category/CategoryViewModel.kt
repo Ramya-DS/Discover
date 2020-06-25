@@ -1,8 +1,6 @@
 package com.example.discover.category
 
 import android.app.Application
-import android.os.Handler
-import android.os.HandlerThread
 import android.util.Log
 import android.util.SparseIntArray
 import androidx.lifecycle.AndroidViewModel
@@ -57,10 +55,6 @@ class CategoryViewModel(private val mApplication: Application) : AndroidViewMode
     private val categoryDao: MediaCategoryDao =
         DiscoverDatabase.getDatabase(mApplication).mediaCategoryDao()
 
-    val handlerThread = HandlerThread("insert").apply {
-        start()
-    }
-    val handler = Handler(handlerThread.looper)
 
     fun databaseTrendingMedia() = categoryDao.getTrendingMedia()
     fun databaseTopRated() = categoryDao.getTopRatedMedia()
@@ -131,7 +125,7 @@ class CategoryViewModel(private val mApplication: Application) : AndroidViewMode
 
                 override fun onResponse(call: Call<MoviesList>, response: Response<MoviesList>) {
                     if (response.isSuccessful) {
-                        handler.post {
+                        (mApplication as DiscoverApplication).handler.post {
                             writeMoviesPreviewsToDb(response.body()!!.results, type)
                         }
                         moviesList.value = response.body()!!.results
@@ -260,7 +254,7 @@ class CategoryViewModel(private val mApplication: Application) : AndroidViewMode
 
                 override fun onResponse(call: Call<ShowsList>, response: Response<ShowsList>) {
                     if (response.isSuccessful) {
-                        handler.post {
+                        (mApplication as DiscoverApplication).handler.post {
                             writeShowsPreviewsToDb(response.body()!!.results, type)
                         }
                         showsList.value = response.body()!!.results
@@ -339,7 +333,7 @@ class CategoryViewModel(private val mApplication: Application) : AndroidViewMode
 
     }
 
-    fun clearTypeTable() = handler.post {
+    fun clearTypeTable() = (mApplication as DiscoverApplication).handler.post {
         categoryDao.deleteTypeTableRecords()
     }
 

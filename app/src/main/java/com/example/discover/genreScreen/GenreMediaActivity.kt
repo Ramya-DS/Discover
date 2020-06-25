@@ -75,7 +75,10 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
                 movieGenre = it
                 showsGenres.observe(this@GenreMediaActivity, Observer {
                     showGenre = it
-                    resultRequest(1)
+                    if (savedInstanceState == null)
+                        resultRequest(1)
+                    else
+                        displayResultFragment()
                 })
             })
         }
@@ -137,18 +140,18 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
             .replace(R.id.genre_media_container, LoadingFragment(), "LOADING").commit()
     }
 
-    private fun removeLoadingFragment() {
-        supportFragmentManager.findFragmentByTag("LOADING")?.let {
-            supportFragmentManager.beginTransaction().remove(it).commit()
-        }
-    }
-
-    private fun removeResultFragment() {
-        supportFragmentManager.findFragmentByTag("RESULT")?.let {
-            supportFragmentManager.beginTransaction().remove(it).commit()
-        }
-        resultFragment = null
-    }
+//    private fun removeLoadingFragment() {
+//        supportFragmentManager.findFragmentByTag("LOADING")?.let {
+//            supportFragmentManager.beginTransaction().remove(it).commit()
+//        }
+//    }
+//
+//    private fun removeResultFragment() {
+//        supportFragmentManager.findFragmentByTag("RESULT")?.let {
+//            supportFragmentManager.beginTransaction().remove(it).commit()
+//        }
+//        resultFragment = null
+//    }
 
     private fun displayResultFragment() {
         resultFragment = GenreMediaResultFragment.newInstance(viewModel.isLinear, typeConvert())
@@ -160,15 +163,13 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
 
     private fun firstPageOfMovies(results: List<MoviePreview>) {
         viewModel.movies = results
-        removeLoadingFragment()
-        removeResultFragment()
+        resultFragment=null
         displayResultFragment()
     }
 
     private fun firstPageOfShows(results: List<ShowPreview>) {
         viewModel.shows = results
-        removeLoadingFragment()
-        removeResultFragment()
+        resultFragment=null
         displayResultFragment()
     }
 

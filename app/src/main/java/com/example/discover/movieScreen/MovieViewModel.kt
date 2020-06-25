@@ -49,11 +49,6 @@ class MovieViewModel(private val mApplication: Application) : AndroidViewModel(m
 
     var onNetworkLostListener: OnNetworkLostListener? = null
 
-    private val handlerThread = HandlerThread("insert").apply {
-        start()
-    }
-    val handler = Handler(handlerThread.looper)
-
     private fun insertMovie(media: Media) {
         mediaDetailsDao.insertMedia(media)
     }
@@ -99,7 +94,7 @@ class MovieViewModel(private val mApplication: Application) : AndroidViewModel(m
 
     fun writeMoviesDetails(movieDetails: MovieDetails) {
         movieDetails.apply {
-            handler.post {
+            (mApplication as DiscoverApplication).handler.post {
                 insertMovie(
                     Media(
                         true,

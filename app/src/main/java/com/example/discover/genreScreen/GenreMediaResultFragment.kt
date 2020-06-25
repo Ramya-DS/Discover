@@ -54,9 +54,9 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
 
     var isMovie: Boolean? = null
     var isLinear = true
-    lateinit var movieGenres: List<Genres>
-    lateinit var showsGenres: List<Genres>
-    lateinit var languages: List<Language>
+    private lateinit var movieGenres: List<Genres>
+    private lateinit var showsGenres: List<Genres>
+    private lateinit var languages: List<Language>
     var loading = true
 
     private lateinit var networkContainer: FrameLayout
@@ -65,7 +65,6 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         arguments?.let {
             isLinear = arguments!!.getBoolean("isLinear")
             val type = arguments!!.getString("type")

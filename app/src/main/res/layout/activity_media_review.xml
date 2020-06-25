@@ -52,10 +52,13 @@
 
         <TextView
             android:id="@+id/review_link"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            app:layout_constraintHorizontal_bias="0.0"
+            android:layout_marginEnd="10dp"
             app:layout_constraintBottom_toBottomOf="@id/review_link_icon"
             app:layout_constraintStart_toEndOf="@id/review_link_icon"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/review_link_icon" />
 
         <TextView

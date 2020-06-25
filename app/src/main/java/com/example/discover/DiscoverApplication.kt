@@ -8,13 +8,13 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.AsyncTask
 import android.os.Environment
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Log
-import android.view.animation.DecelerateInterpolator
+import androidx.annotation.WorkerThread
 import androidx.collection.LruCache
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.transition.ChangeBounds
-import androidx.transition.Transition
 import com.example.discover.category.MediaCategoryApiCall
 import com.example.discover.datamodel.Language
 import com.example.discover.datamodel.genre.GenreResult
@@ -67,6 +67,11 @@ class DiscoverApplication : Application() {
 
     lateinit var genreDao: GenreDao
     lateinit var languageDao: LanguageDao
+
+    private val handlerThread = HandlerThread("insert").apply {
+        start()
+    }
+    val handler = Handler(handlerThread.looper)
 
     var diskLruCache: DiskLruCache? = null
     val diskCacheLock = ReentrantLock()
@@ -153,6 +158,7 @@ class DiscoverApplication : Application() {
         return File(cachePath + File.separator + uniqueName)
     }
 
+    @WorkerThread
     fun containsKey(key: String?): Boolean {
         var contained = false
         var snapshot: DiskLruCache.Snapshot? = null
@@ -167,6 +173,7 @@ class DiscoverApplication : Application() {
         return contained
     }
 
+    @WorkerThread
     fun put(key: String, data: Bitmap) {
         var editor: DiskLruCache.Editor? = null
         try {
@@ -197,6 +204,7 @@ class DiscoverApplication : Application() {
         }
     }
 
+    @WorkerThread
     @Throws(IOException::class, FileNotFoundException::class)
     private fun writeBitmapToFile(
         bitmap: Bitmap,
@@ -211,6 +219,7 @@ class DiscoverApplication : Application() {
         }
     }
 
+    @WorkerThread
     fun getBitmap(key: String): Bitmap? {
         var bitmap: Bitmap? = null
         var snapshot: DiskLruCache.Snapshot? = null
@@ -263,12 +272,13 @@ class DiscoverApplication : Application() {
         return list
     }
 
-    private fun insertAllGenres(list: List<Genres>, isMovie: Boolean) = Thread {
+    @WorkerThread
+    private fun insertAllGenres(list: List<Genres>, isMovie: Boolean) = handler.post {
         for (i in list)
             i.isMovie = isMovie
         genreDao.insertAllGenres(list)
 
-    }.start()
+    }
 
 
     fun fetchErrorMessage(error: ResponseBody): String {
@@ -318,40 +328,13 @@ class DiscoverApplication : Application() {
         return languages
     }
 
-    private fun insertAllLanguages(list: List<Language>) = Thread {
+    @WorkerThread
+    private fun insertAllLanguages(list: List<Language>) = handler.post {
         languageDao.insertAllLanguages(list)
-    }.start()
+    }
 
     fun checkConnectivity(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-//        if (cm.getNetworkInfo(TYPE_MOBILE)?.state == NetworkInfo.State.CONNECTED
-//            || cm.getNetworkInfo(TYPE_WIFI)?.state == NetworkInfo.State.CONNECTED
-//        ) {
-//            Log.d("Connectivity","true")
-//            return true
-//
-//        }
-//        Log.d("Connectivity","false")
-//        return false
-
-//        for (network in cm.allNetworks)
-//        { try
-//            {
-//                val info = cm.getNetworkInfo(network);
-//
-//                if (info == null || !info.isAvailable || info.subtype.HasFla(ConnectivityType.Dummy))
-//                    continue;
-//
-//                if (info.IsConnected)
-//                    return true;
-//            }
-//            catch
-//            {
-//                //there is a possibility, but don't worry
-//            }
-//        }
-//        return false;
-
         val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
         Log.d("isConnected", isConnected.toString())
@@ -368,5 +351,11 @@ class DiscoverApplication : Application() {
 //            fragmentManager.beginTransaction().remove(it).commit()
 //        }
 //    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        handler.removeCallbacksAndMessages(null)
+        handler.looper.quit()
+    }
 
 }

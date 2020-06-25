@@ -7,14 +7,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.transition.ChangeBounds
-import android.transition.Fade
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.View.GONE
-import android.view.animation.DecelerateInterpolator
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -62,7 +59,6 @@ class MovieActivity : AppCompatActivity(),
     OnReviewClickListener,
     OnUrlSelectedListener, OnNetworkLostListener, OnGenreOrKeywordSelectedListener {
 
-    //    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var coordinatorLayout: CoordinatorLayout
     private var progressDialog: ProgressDialog? = null
     private lateinit var appBarLayout: AppBarLayout
@@ -105,7 +101,7 @@ class MovieActivity : AppCompatActivity(),
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             postponeEnterTransition()
-//            window.enterTransition = null
+            window.enterTransition = null
 //            window?.sharedElementEnterTransition = ChangeBounds().setDuration(200)
 //            window?.sharedElementExitTransition =
 //                ChangeBounds().setDuration(200).setInterpolator(DecelerateInterpolator())
@@ -113,17 +109,6 @@ class MovieActivity : AppCompatActivity(),
 
         fetchIntentData()
         bindActivity(savedInstanceState)
-
-//        swipeRefreshLayout = findViewById(R.id.movie_detail_swipe_refresh)
-//        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
-//        swipeRefreshLayout.setOnRefreshListener {
-//            Handler().postDelayed({
-//                flag = 1
-//                timer?.cancel()
-//                loadDetailsFromNetwork()
-//                swipeRefreshLayout.isRefreshing = false
-//            }, 1000)
-//        }
 
         appBarLayout = findViewById(R.id.movie_detail_app_bar)
         collapsingToolbarLayout = findViewById(R.id.movie_detail_collapsing)
@@ -155,10 +140,8 @@ class MovieActivity : AppCompatActivity(),
                     toolbar.background = ContextCompat.getDrawable(this, R.drawable.main_background)
                     collapsingToolbarLayout.title = currentMovie.title
                     infoItem?.isVisible = true
-//                    swipeRefreshLayout.isEnabled = false
                 } else if (verticalOffset == 0) {
                     collapsingToolbarLayout.title = " "
-//                    swipeRefreshLayout.isEnabled = true
                     infoItem?.isVisible = false
                 } else {
                     collapsingToolbarLayout.title = " "
@@ -170,6 +153,7 @@ class MovieActivity : AppCompatActivity(),
 
     private fun fetchIntentData() {
         currentMovie = intent?.getParcelableExtra("movie")!!
+        Log.d("movie", currentMovie.title)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -284,7 +268,6 @@ class MovieActivity : AppCompatActivity(),
     private fun assignIntentDataToViews() {
         currentMovie.apply {
             setGenres(genresForIds(genre_ids))
-
             LoadPosterImage(poster_path, posterImage, WeakReference(this@MovieActivity)).apply {
                 loadImage()
             }
@@ -653,7 +636,6 @@ class MovieActivity : AppCompatActivity(),
             }
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                Log.d("onTabselected", "${tab?.position?.plus(1)}")
                 if (tab?.position?.plus(1) != currentPage) {
                     tab?.position?.plus(1)?.let {
                         currentPage = it
@@ -675,12 +657,6 @@ class MovieActivity : AppCompatActivity(),
             }
         }
         Timer().schedule(timer, 500, 5000)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        viewModel.handler.removeCallbacksAndMessages(null)
-        viewModel.handler.looper.quit()
     }
 
     override fun onNetworkLostFragment() {
@@ -803,10 +779,8 @@ class MovieActivity : AppCompatActivity(),
 
     private fun shouldReverseSharedElementTransition(): Boolean {
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || collapsingToolbarLayout.title != " ") {
-            Log.d("shouldReverseShared", "false")
             return false
         }
-        Log.d("shouldReverseShared", "true")
         return true
     }
 

@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
-import android.view.ViewTreeObserver
 import android.widget.ImageView
 import androidx.annotation.MainThread
 import androidx.annotation.WorkerThread
@@ -49,7 +48,7 @@ class LoadPosterImage(
                     val app = (activity.get()?.application as DiscoverApplication)
                     val key = createKey(url)
 
-                    var mBitmap = checkInMemory(key, app).apply {
+                    var mBitmap = checkInMemoryAndDisk(key, app).apply {
                         bitmap.postValue(this)
                     }
 
@@ -62,7 +61,7 @@ class LoadPosterImage(
                             }
                         }
                         if (mBitmap != null) {
-                            handler.post { writeInMemory(key, mBitmap, app) }
+                            handler.post { writeInMemoryAndDiskCache(key, mBitmap, app) }
                         }
                     }
                 }
@@ -73,11 +72,10 @@ class LoadPosterImage(
         setPosterImageToView()
     }
 
-    fun loadImage(width: Int, saveToCache: Boolean) {
+    fun loadImage(width: Int, saveToOnlyMemoryCache: Boolean) {
         executors.execute {
             try {
                 val height = (width / 1.777777).toInt()
-                Log.d("Backdrop", "$width $height")
                 thread = Thread.currentThread()
                 val inputStream: InputStream?
                 if (url != null) {
@@ -85,7 +83,7 @@ class LoadPosterImage(
                     val key = createKey(url)
 
                     var mBitmap =
-                        if (!saveToCache) checkInMemory(key, app) else checkInCache(key, app)
+                        if (saveToOnlyMemoryCache) checkInMemoryCache(key, app) else checkInMemoryAndDisk(key, app)
 
                     mBitmap.apply {
                         bitmap.postValue(this)
@@ -97,15 +95,14 @@ class LoadPosterImage(
                         inputStream = URL(url).openStream()
                         mBitmap = inputStream?.let {
                             createScaledBitmapFromStream(inputStream, width, height).apply {
-                                Log.d("Backdrop from url", "$width $height")
                                 bitmap.postValue(this)
                             }
                         }
                         if (mBitmap != null) {
-                            if (saveToCache)
-                                handler.post { writeToCache(key, mBitmap, app) }
+                            if (saveToOnlyMemoryCache)
+                                handler.post { writeToMemoryCache(key, mBitmap, app) }
                             else
-                                handler.post { writeInMemory(key, mBitmap, app) }
+                                handler.post { writeInMemoryAndDiskCache(key, mBitmap, app) }
                         }
                     }
                 }
@@ -121,7 +118,6 @@ class LoadPosterImage(
             try {
                 val width = 100
                 val height = 100
-                Log.d("Backdrop", "$width $height")
                 thread = Thread.currentThread()
                 val inputStream: InputStream?
                 if (url != null) {
@@ -129,7 +125,7 @@ class LoadPosterImage(
                     val key = createKey(url)
 
                     var mBitmap =
-                        if (!saveToCache) checkInMemory(key, app) else checkInCache(key, app)
+                        if (!saveToCache) checkInMemoryAndDisk(key, app) else checkInMemoryCache(key, app)
 
                     mBitmap.apply {
                         bitmap.postValue(this)
@@ -141,15 +137,14 @@ class LoadPosterImage(
                         inputStream = URL(url).openStream()
                         mBitmap = inputStream?.let {
                             createScaledBitmapFromStream(inputStream, width, height).apply {
-                                Log.d("Backdrop from url", "$width $height")
                                 bitmap.postValue(this)
                             }
                         }
                         if (mBitmap != null) {
                             if (saveToCache)
-                                handler.post { writeToCache(key, mBitmap, app) }
+                                handler.post { writeToMemoryCache(key, mBitmap, app) }
                             else
-                                handler.post { writeInMemory(key, mBitmap, app) }
+                                handler.post { writeInMemoryAndDiskCache(key, mBitmap, app) }
                         }
                     }
                 }
@@ -157,7 +152,7 @@ class LoadPosterImage(
                 Log.d("LoadImage", "Error occurred. ${e.message}")
             }
         }
-        setBackdropImageToView()
+        setCreditImageToView()
     }
 
     @WorkerThread
@@ -207,7 +202,7 @@ class LoadPosterImage(
         return null
     }
 
-    private fun checkInMemory(key: String, application: DiscoverApplication): Bitmap? {
+    private fun checkInMemoryAndDisk(key: String, application: DiscoverApplication): Bitmap? {
         val image = fetchMemoryCacheImage(key, application)
         if (image != null) {
             return image
@@ -215,7 +210,7 @@ class LoadPosterImage(
         return getBitmapFromDiskCache(key, application)
     }
 
-    private fun checkInCache(key: String, application: DiscoverApplication): Bitmap? {
+    private fun checkInMemoryCache(key: String, application: DiscoverApplication): Bitmap? {
         val image = fetchMemoryCacheImage(key, application)
         if (image != null) {
             return image
@@ -229,7 +224,7 @@ class LoadPosterImage(
     }
 
     @WorkerThread
-    private fun writeInMemory(key: String, bitmap: Bitmap, application: DiscoverApplication) {
+    private fun writeInMemoryAndDiskCache(key: String, bitmap: Bitmap, application: DiscoverApplication) {
         application.apply {
             memoryCache.put(key, bitmap)
             diskCacheLock.withLock {
@@ -241,7 +236,7 @@ class LoadPosterImage(
     }
 
     @WorkerThread
-    private fun writeToCache(key: String, bitmap: Bitmap, application: DiscoverApplication) {
+    private fun writeToMemoryCache(key: String, bitmap: Bitmap, application: DiscoverApplication) {
         application.apply {
             memoryCache.put(key, bitmap)
         }
@@ -260,16 +255,6 @@ class LoadPosterImage(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                     activity.get()?.startPostponedEnterTransition()
                 }
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//                    imageView.viewTreeObserver?.addOnPreDrawListener(object :
-//                        ViewTreeObserver.OnPreDrawListener {
-//                        override fun onPreDraw(): Boolean {
-//                            imageView.viewTreeObserver?.removeOnPreDrawListener(this)
-//                            activity.get()?.startPostponedEnterTransition()
-//                            return true
-//                        }
-//                    })
-//                }
             } else {
                 imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
                 imageView.setImageDrawable(
@@ -286,7 +271,6 @@ class LoadPosterImage(
     private fun setBackdropImageToView() {
         bitmap.observeForever {
             if (it != null) {
-                Log.d("setBackdropImageToView", "${imageView.width} ${imageView.height}")
                 imageView.scaleType = ImageView.ScaleType.CENTER_CROP
                 imageView.setImageBitmap(it)
             } else {
@@ -295,6 +279,24 @@ class LoadPosterImage(
                     ContextCompat.getDrawable(
                         imageView.context,
                         R.drawable.ic_media_placeholder
+                    )
+                )
+            }
+        }
+    }
+
+    @MainThread
+    private fun setCreditImageToView() {
+        bitmap.observeForever {
+            if (it != null) {
+                imageView.scaleType = ImageView.ScaleType.CENTER_CROP
+                imageView.setImageBitmap(it)
+            } else {
+                imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+                imageView.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        imageView.context,
+                        R.drawable.ic_credit_placeholder
                     )
                 )
             }
