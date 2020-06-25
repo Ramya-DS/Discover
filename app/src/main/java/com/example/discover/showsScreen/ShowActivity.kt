@@ -68,7 +68,7 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     private lateinit var overview: TextView
 
     private var flag = 1
-    private lateinit var handler: Handler
+    private var handler: Handler? = null
 
     private lateinit var createdBy: RecyclerView
     private var viewPagerCallback: ViewPager2.OnPageChangeCallback? = null
@@ -548,7 +548,7 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 
         Timer().schedule(object : TimerTask() {
             override fun run() {
-                handler.post(update)
+                handler?.post(update)
             }
         }, 500, 5000)
     }
@@ -664,7 +664,7 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         super.onDestroy()
         viewModel.handler.removeCallbacksAndMessages(null)
         viewModel.handler.looper.quit()
-        handler.removeCallbacksAndMessages(null)
+        handler?.removeCallbacksAndMessages(null)
 //        viewPagerCallback?.let {
 //            backdrop.unregisterOnPageChangeCallback(it)
 //        }

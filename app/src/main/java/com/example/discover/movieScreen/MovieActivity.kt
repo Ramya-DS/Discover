@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -57,7 +56,6 @@ class MovieActivity : AppCompatActivity(),
     OnReviewClickListener,
     OnUrlSelectedListener, OnNetworkLostListener, OnGenreSelectedListener {
 
-    private var viewPagerCallback: ViewPager2.OnPageChangeCallback? = null
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var coordinatorLayout: CoordinatorLayout
     private lateinit var appBarLayout: AppBarLayout
@@ -85,7 +83,7 @@ class MovieActivity : AppCompatActivity(),
     private var linkDialog: InfoDialogFragment? = null
     private lateinit var viewModel: MovieViewModel
 
-    private lateinit var languages: List<Language>
+    private var languages: List<Language>? = null
     private lateinit var genres: List<Genres>
 
     private var menu: Menu? = null
@@ -198,11 +196,10 @@ class MovieActivity : AppCompatActivity(),
 
         (application as DiscoverApplication).languages.observe(this, Observer {
             languages = it
-        })
-
-        (application as DiscoverApplication).movieGenres.observe(this, Observer {
-            genres = it
-            assignIntentDataToViews()
+            (application as DiscoverApplication).movieGenres.observe(this, Observer { genre ->
+                genres = genre
+                assignIntentDataToViews()
+            })
         })
 
         if (savedInstanceState == null) {
@@ -254,16 +251,6 @@ class MovieActivity : AppCompatActivity(),
 
     private fun assignIntentDataToViews() {
         currentMovie.apply {
-            //            backdropImage.orientation = ViewPager2.ORIENTATION_HORIZONTAL
-//            if (backdrop_path != null)
-//                backdropImage.adapter = ImageAdapter(
-//                    true,
-//                    listOf(ImageDetails(0.0, backdrop_path)),
-//                    WeakReference(this@MovieActivity)
-//                )
-//            else
-//                backdropImage.adapter = ImageAdapter(true, null, WeakReference(this@MovieActivity))
-
             setGenres(genresForIds(genre_ids))
 
             LoadPosterImage(poster_path, posterImage, WeakReference(this@MovieActivity)).apply {
@@ -369,7 +356,6 @@ class MovieActivity : AppCompatActivity(),
             ).apply {
                 setGenresList(genres)
             }
-
     }
 
     private fun setKeywords(keywords: List<Keyword>) {
@@ -462,13 +448,16 @@ class MovieActivity : AppCompatActivity(),
                     "Homepage"
                 )
             )
-        list.add(
-            InfoClass(
-                R.drawable.ic_language,
-                getLanguageName(movieDetails.original_language),
-                "Original Language"
+        languages?.let {
+            list.add(
+                InfoClass(
+                    R.drawable.ic_language,
+                    getLanguageName(movieDetails.original_language),
+                    "Original Language"
+                )
             )
-        )
+        }
+
         if (movieDetails.release_date != null && movieDetails.release_date.trim().isNotEmpty())
             list.add(
                 InfoClass(
@@ -490,7 +479,7 @@ class MovieActivity : AppCompatActivity(),
     }
 
     private fun getLanguageName(id: String): String {
-        for (i in languages) {
+        for (i in languages!!) {
             if (i.isoId == id)
                 return i.name
         }
@@ -618,22 +607,17 @@ class MovieActivity : AppCompatActivity(),
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
-//                Log.d("onTabReselected", "${tab?.position} $currentPage")
-//                move = tab?.position == currentPage
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {
             }
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                Log.d("onTabSelected", "${(tab?.position)?.plus( 1)} $currentPage")
                 move = tab?.position?.plus(1) == currentPage
             }
-
         })
 
         val handler = Handler()
-
         val update = Runnable {
             if (currentPage == total) {
                 return@Runnable
@@ -641,13 +625,11 @@ class MovieActivity : AppCompatActivity(),
             if (move)
                 backdropImage.setCurrentItem(currentPage++, true);
         }
-
         timer = object : TimerTask() {
             override fun run() {
                 handler.post(update)
             }
         }
-
         Timer().schedule(timer, 500, 5000)
     }
 
@@ -655,13 +637,9 @@ class MovieActivity : AppCompatActivity(),
         super.onDestroy()
         viewModel.handler.removeCallbacksAndMessages(null)
         viewModel.handler.looper.quit()
-//        viewPagerCallback?.let {
-//            backdropImage.unregisterOnPageChangeCallback(it)
-//        }
     }
 
     override fun onNetworkLostFragment() {
-
     }
 
     override fun onNetworkDialog() {
@@ -675,7 +653,6 @@ class MovieActivity : AppCompatActivity(),
                 null
         } else
             NetworkSnackbar.make(coordinatorLayout).setBehavior(NoSwipeBehavior())
-
         snackbar?.show()
     }
 

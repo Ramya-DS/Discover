@@ -13,7 +13,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".genreScreen.GenreMediaActivity"></activity>
+        <activity android:name=".loginScreen.LoginActivity"></activity>
+        <activity android:name=".genreScreen.GenreMediaActivity" />
         <activity android:name=".showsScreen.SeasonActivity" />
         <activity android:name=".showsScreen.ShowActivity" />
         <activity android:name=".mediaScreenUtils.MediaReviewActivity" />
@@ -28,6 +29,7 @@
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

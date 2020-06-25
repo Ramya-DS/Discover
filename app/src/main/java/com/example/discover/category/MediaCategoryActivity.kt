@@ -343,8 +343,8 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
             }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
+    override fun onPause() {
+        super.onPause()
         for (i in containers) {
             supportFragmentManager.findFragmentByTag("${i.id} RESULT")?.let {
                 if (it is CategoryListResultFragment)
@@ -353,6 +353,19 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
                         it.lastElementPosition()
                     )
             }
+        }
+    }
+
+//    override fun onSaveInstanceState(outState: Bundle) {
+//        super.onSaveInstanceState(outState)
+//        for (i in containers) {
+//            supportFragmentManager.findFragmentByTag("${i.id} RESULT")?.let {
+//                if (it is CategoryListResultFragment)
+//                    viewModel.positions.put(
+//                        i.id,
+//                        it.lastElementPosition()
+//                    )
+//            }
 //            supportFragmentManager.findFragmentById(i.id)?.let {
 //                if (it is CategoryListResultFragment)
 //                    viewModel.positions.put(
@@ -360,8 +373,8 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
 //                        it.lastElementPosition()
 //                    )
 //            }
-        }
-    }
+//        }
+//    }
 
     override fun onBackPressed() {
         super.onBackPressed()
