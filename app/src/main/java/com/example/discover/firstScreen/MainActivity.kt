@@ -88,7 +88,6 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
     private fun searchInitiation() {
         searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
             if (hasFocus) {
-
                 val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                     this@MainActivity,
                     searchView,
@@ -190,8 +189,8 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
         overridePendingTransition(R.anim.right_in, R.anim.left_out)
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onPause() {
+        super.onPause()
         searchView.clearFocus()
     }
 

@@ -19,14 +19,10 @@
         <activity android:name=".showsScreen.ShowActivity" />
         <activity android:name=".mediaScreenUtils.MediaReviewActivity" />
         <activity android:name=".category.MediaCategoryActivity" />
-        <activity
-            android:name=".searchScreen.SearchActivity"
-            android:windowSoftInputMode="stateVisible" />
+        <activity android:name=".searchScreen.SearchActivity" />
         <activity android:name=".filterScreen.ui.FilterActivity" />
         <activity android:name=".movieScreen.MovieActivity" />
-        <activity
-            android:name=".firstScreen.MainActivity"
-            android:windowSoftInputMode="stateHidden">
+        <activity android:name=".firstScreen.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

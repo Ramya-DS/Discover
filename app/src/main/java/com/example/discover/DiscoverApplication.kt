@@ -10,6 +10,7 @@ import android.os.AsyncTask
 import android.os.Environment
 import android.util.Log
 import androidx.collection.LruCache
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.discover.category.MediaCategoryApiCall
@@ -26,6 +27,7 @@ import com.example.discover.roomDatabase.dao.LanguageDao
 import com.example.discover.searchScreen.SeachApiCall
 import com.example.discover.showsScreen.SeasonApiCall
 import com.example.discover.showsScreen.ShowDetailApiCall
+import com.example.discover.util.LoadingFragment
 import com.jakewharton.disklrucache.DiskLruCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -350,5 +352,16 @@ class DiscoverApplication : Application() {
         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
         Log.d("isConnected", isConnected.toString())
         return isConnected
+    }
+
+    fun displayLoadingFragment(fragmentManager: FragmentManager, container: Int) {
+        fragmentManager.beginTransaction()
+            .replace(container, LoadingFragment(), "${container}_load").commit()
+    }
+
+    fun removeLoadingFragment(fragmentManager: FragmentManager, container: Int) {
+        fragmentManager.findFragmentByTag("${container}_load")?.let {
+            fragmentManager.beginTransaction().remove(it).commit()
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.discover.filterScreen.ui
 
 
+import android.app.Activity
 import android.app.Dialog
 import android.os.Bundle
 import android.os.Handler
@@ -9,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -30,7 +32,6 @@ import com.example.discover.util.LoadingFragment
 import com.example.discover.util.NoInternetFragment
 import com.example.discover.util.NoMatchFragment
 import com.google.android.material.button.MaterialButton
-
 
 /**
  * A simple [Fragment] subclass.
@@ -88,10 +89,15 @@ class FilterFragment : Fragment(), OnSortOptionSelectedListener,
         runtimeText = rootView.findViewById(R.id.filter_runtime)
         yearText = rootView.findViewById(R.id.filter_year)
 
+        val sizeText: TextView = rootView.findViewById(R.id.filter_size)
+
         //filter button
         val filter: MaterialButton = rootView.findViewById(R.id.filter_button)
         filter.setOnClickListener {
             viewModel.discover = true
+            hideKeyboardFrom(voteAverageText)
+            hideKeyboardFrom(runtimeText)
+            hideKeyboardFrom(yearText)
             size.postValue(0)
             if (yearText.text.toString().trim().isNotEmpty())
                 queryMap["primary_release_year"] = yearText.text.toString().trim()
@@ -106,8 +112,6 @@ class FilterFragment : Fragment(), OnSortOptionSelectedListener,
             fillMedia(isMovie)
             (activity!! as FilterActivity).toggleFilters()
         }
-
-        val sizeText: TextView = rootView.findViewById(R.id.filter_size)
 
         size.observe(viewLifecycleOwner, Observer {
             val text = "$it item(s)"
@@ -499,6 +503,12 @@ class FilterFragment : Fragment(), OnSortOptionSelectedListener,
 
     fun restorePosition(position: Int) {
         viewModel.position = position
+    }
+
+    private fun hideKeyboardFrom(view: View) {
+        val imm: InputMethodManager =
+            context?.getSystemService(Activity.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 }
 

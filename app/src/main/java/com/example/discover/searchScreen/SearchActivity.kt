@@ -1,6 +1,5 @@
 package com.example.discover.searchScreen
 
-import android.database.MatrixCursor
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -13,8 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
-import androidx.cursoradapter.widget.CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER
-import androidx.cursoradapter.widget.SimpleCursorAdapter
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -47,7 +44,7 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private var mQuery = ""
 
-    private var matrixCursor: MatrixCursor? = null
+    //    private var matrixCursor: MatrixCursor? = null
     private lateinit var resultView: FloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,7 +72,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
         val navigationIcon: ImageButton = findViewById(R.id.search_back)
 
         navigationIcon.setOnClickListener {
-            searchView.clearFocus()
             finish()
         }
         initializeSearchView()
@@ -92,16 +88,16 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
     private fun initializeSearchView() {
         searchView = findViewById(R.id.search_searchView)
 
-        val adapter = SimpleCursorAdapter(
-            this,
-            android.R.layout.simple_list_item_1,
-            matrixCursor,
-            arrayOf("Query"),
-            IntArray(1) { android.R.id.text1 },
-            FLAG_REGISTER_CONTENT_OBSERVER
-        )
+//        val adapter = SimpleCursorAdapter(
+//            this,
+//            android.R.layout.simple_list_item_1,
+//            matrixCursor,
+//            arrayOf("Query"),
+//            IntArray(1) { android.R.id.text1 },
+//            FLAG_REGISTER_CONTENT_OBSERVER
+//        )
 
-        searchView.suggestionsAdapter = adapter
+//        searchView.suggestionsAdapter = adapter
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -110,6 +106,8 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
                         viewModel.insertQuery(it)
                         resultStatus.text = null
                         clearViewModelLists()
+                        resultStatus.requestFocus()
+                        viewModel.focus = false
                         initiateSearch(it.trim())
                     }
                 }
@@ -360,14 +358,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (viewModel.focus)
-            getKeyboard()
-        else
-            searchView.clearFocus()
-    }
-
     private fun displayNoInternetConnectionFragment() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.search_network_container, NoInternetFragment(), "search_no_connection")
@@ -383,53 +373,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
     private fun getKeyboard() {
         searchView.requestFocus()
         searchView.requestFocusFromTouch()
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        viewModel.isLinear = isLinear
-        viewModel.focus = false
-        viewModel.fragmentExists =
-            supportFragmentManager.findFragmentByTag("search_no_connection") != null
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        searchView.clearFocus()
-        isMovie = viewModel.isMovie
-        isLinear = viewModel.isLinear
-        viewDrawable(!isLinear)
-        viewModel.queryMap["query"]?.let {
-            mQuery = it
-            searchView.setQuery(it, false)
-            var isResultEmpty = false
-            when (viewModel.isMovie) {
-                null -> {
-                    firstPageOfMultiSearch(viewModel.multiList)
-                    if (viewModel.multiList.isEmpty())
-                        isResultEmpty = true
-                }
-                true -> {
-                    firstPageOfMovies(viewModel.moviesList)
-                    if (viewModel.moviesList.isEmpty())
-                        isResultEmpty = true
-                }
-                false -> {
-                    firstPageOfShows(viewModel.showsList)
-                    if (viewModel.showsList.isEmpty())
-                        isResultEmpty = true
-                }
-            }
-
-            if (!(application as DiscoverApplication).checkConnectivity() && isResultEmpty) {
-                displayNoInternetConnectionFragment()
-                displayLoadingFragment()
-            }
-
-            if (viewModel.fragmentExists) {
-                displayNoInternetConnectionFragment()
-            }
-        }
     }
 
     private fun viewDrawable(isLinear: Boolean) {
@@ -473,20 +416,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
         }
     }
 
-    override fun onRefresh() {
-        Handler().postDelayed({
-            if ((application as DiscoverApplication).checkConnectivity()) {
-                viewModel.queryMap["page"] = "1"
-                displayLoadingFragment()
-                typeCall()
-
-            } else
-                displayNoInternetConnectionFragment()
-
-            swipeRefreshLayout.isRefreshing = false
-        }, 1000)
-    }
-
     override fun onNetworkLostFragment() {
         displayNoInternetConnectionFragment()
         displayLoadingFragment()
@@ -507,11 +436,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
         viewModel.position = 0
     }
 
-    override fun onStop() {
-        super.onStop()
-        searchView.clearFocus()
-    }
-
     fun restorePosition(position: Int) {
         viewModel.position = position
     }
@@ -522,5 +446,86 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
             if (i.media_type == "movie" || i.media_type == "tv")
                 mediaList.add(i)
         return mediaList
+    }
+
+    override fun onRefresh() {
+        Handler().postDelayed({
+            if ((application as DiscoverApplication).checkConnectivity()) {
+                viewModel.queryMap["page"] = "1"
+                displayLoadingFragment()
+                typeCall()
+
+            } else
+                displayNoInternetConnectionFragment()
+
+            swipeRefreshLayout.isRefreshing = false
+        }, 1000)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Log.d("onResume", viewModel.focus.toString())
+        if (viewModel.focus)
+            getKeyboard()
+        else
+            resultStatus.requestFocus()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        viewModel.isLinear = isLinear
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.fragmentExists =
+            supportFragmentManager.findFragmentByTag("search_no_connection") != null
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        isMovie = viewModel.isMovie
+        isLinear = viewModel.isLinear
+        viewDrawable(!isLinear)
+        viewModel.queryMap["query"]?.let {
+            mQuery = it
+            searchView.setQuery(it, true)
+            var isResultEmpty = false
+            when (viewModel.isMovie) {
+                null -> {
+                    firstPageOfMultiSearch(viewModel.multiList)
+                    if (viewModel.multiList.isEmpty())
+                        isResultEmpty = true
+                }
+                true -> {
+                    firstPageOfMovies(viewModel.moviesList)
+                    if (viewModel.moviesList.isEmpty())
+                        isResultEmpty = true
+                }
+                false -> {
+                    firstPageOfShows(viewModel.showsList)
+                    if (viewModel.showsList.isEmpty())
+                        isResultEmpty = true
+                }
+            }
+
+            if (!(application as DiscoverApplication).checkConnectivity() && isResultEmpty) {
+                displayNoInternetConnectionFragment()
+                displayLoadingFragment()
+            }
+
+            if (viewModel.fragmentExists) {
+                displayNoInternetConnectionFragment()
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        searchView.clearFocus()
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
     }
 }
