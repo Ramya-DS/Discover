@@ -2,6 +2,7 @@ package com.example.discover.mediaDisplay
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -79,20 +80,21 @@ class MediaDetailAdapter(
                     }
 
                     val key = if (isMovie) "movie" else "show"
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                            this,
-                            poster as View,
-                            "posterImage"
-                        )
-                        startActivity(Intent(this, mClass).apply {
-                            putExtra(key, media)
-                        }, options.toBundle())
-                    } else {
-                        startActivity(Intent(this, mClass).apply {
-                            putExtra(key, media)
-                        })
+                    if (hasWindowFocus()) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP&& resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                            val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                                this,
+                                poster as View,
+                                "posterImage"
+                            )
+                            startActivity(Intent(this, mClass).apply {
+                                putExtra(key, media)
+                            }, options.toBundle())
+                        } else {
+                            startActivity(Intent(this, mClass).apply {
+                                putExtra(key, media)
+                            })
+                        }
                     }
                 } else {
                     onNetworkLostListener.onNetworkDialog()

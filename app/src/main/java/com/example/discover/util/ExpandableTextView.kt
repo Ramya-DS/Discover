@@ -2,7 +2,10 @@ package com.example.discover.util
 
 import android.content.Context
 import android.content.res.TypedArray
+import android.graphics.Color
+import android.text.Spannable
 import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.util.AttributeSet
 import android.widget.TextView
 import com.example.discover.R
@@ -37,7 +40,11 @@ class ExpandableTextView(context: Context, attrs: AttributeSet?) : TextView(cont
                 originalText,
                 0,
                 trimLength + 1
-            ).append(ELLIPSIS)
+            ).append(
+                ELLIPSIS,
+                ForegroundColorSpan(Color.BLUE),
+                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
         } else {
             originalText
         }
@@ -55,7 +62,7 @@ class ExpandableTextView(context: Context, attrs: AttributeSet?) : TextView(cont
 
     companion object {
         private const val DEFAULT_TRIM_LENGTH = 200
-        private const val ELLIPSIS = "....."
+        private const val ELLIPSIS = "...more"
     }
 
     init {

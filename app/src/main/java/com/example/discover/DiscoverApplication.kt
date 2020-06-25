@@ -9,10 +9,12 @@ import android.net.NetworkInfo
 import android.os.AsyncTask
 import android.os.Environment
 import android.util.Log
+import android.view.animation.DecelerateInterpolator
 import androidx.collection.LruCache
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.transition.ChangeBounds
+import androidx.transition.Transition
 import com.example.discover.category.MediaCategoryApiCall
 import com.example.discover.datamodel.Language
 import com.example.discover.datamodel.genre.GenreResult
@@ -20,6 +22,7 @@ import com.example.discover.datamodel.genre.Genres
 import com.example.discover.filterScreen.FilterApiCall
 import com.example.discover.firstScreen.GenreApiCall
 import com.example.discover.genreScreen.GenreMediaApiCall
+import com.example.discover.keywordScreen.KeywordApiCall
 import com.example.discover.mediaScreenUtils.apiCalls.MovieDetailApiCall
 import com.example.discover.roomDatabase.DiscoverDatabase
 import com.example.discover.roomDatabase.dao.GenreDao
@@ -27,7 +30,6 @@ import com.example.discover.roomDatabase.dao.LanguageDao
 import com.example.discover.searchScreen.SeachApiCall
 import com.example.discover.showsScreen.SeasonApiCall
 import com.example.discover.showsScreen.ShowDetailApiCall
-import com.example.discover.util.LoadingFragment
 import com.jakewharton.disklrucache.DiskLruCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -55,6 +57,7 @@ class DiscoverApplication : Application() {
     lateinit var seasonApiCall: SeasonApiCall
     lateinit var showDetailApiCall: ShowDetailApiCall
     lateinit var genreMediaApiCall: GenreMediaApiCall
+    lateinit var keywordApiCall: KeywordApiCall
 
     lateinit var memoryCache: LruCache<String, Bitmap>
 
@@ -101,6 +104,7 @@ class DiscoverApplication : Application() {
         seasonApiCall = retrofit.create(SeasonApiCall::class.java)
         showDetailApiCall = retrofit.create(ShowDetailApiCall::class.java)
         genreMediaApiCall = retrofit.create(GenreMediaApiCall::class.java)
+        keywordApiCall = retrofit.create(KeywordApiCall::class.java)
 
         genreDao = DiscoverDatabase.getDatabase(applicationContext).genresUtilsDao()
         languageDao = DiscoverDatabase.getDatabase(applicationContext).languageDao()
@@ -354,14 +358,15 @@ class DiscoverApplication : Application() {
         return isConnected
     }
 
-    fun displayLoadingFragment(fragmentManager: FragmentManager, container: Int) {
-        fragmentManager.beginTransaction()
-            .replace(container, LoadingFragment(), "${container}_load").commit()
-    }
+//    fun displayLoadingFragment(fragmentManager: FragmentManager, container: Int) {
+//        fragmentManager.beginTransaction()
+//            .replace(container, LoadingFragment(), "${container}_load").commit()
+//    }
+//
+//    fun removeLoadingFragment(fragmentManager: FragmentManager, container: Int) {
+//        fragmentManager.findFragmentByTag("${container}_load")?.let {
+//            fragmentManager.beginTransaction().remove(it).commit()
+//        }
+//    }
 
-    fun removeLoadingFragment(fragmentManager: FragmentManager, container: Int) {
-        fragmentManager.findFragmentByTag("${container}_load")?.let {
-            fragmentManager.beginTransaction().remove(it).commit()
-        }
-    }
 }

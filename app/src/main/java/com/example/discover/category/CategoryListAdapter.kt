@@ -2,6 +2,7 @@ package com.example.discover.category
 
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -45,6 +46,7 @@ class CategoryListAdapter(
 
     inner class MediaWithTitleViewHolder(mediaView: View) : RecyclerView.ViewHolder(mediaView),
         View.OnClickListener {
+
         var mPosition: Int = 0
         var type = 1
         var isMovie = true
@@ -52,7 +54,6 @@ class CategoryListAdapter(
         val title: TextView = mediaView.findViewById(R.id.media_card_grid_title)
         val votingAverage: TextView = mediaView.findViewById(R.id.media_card_grid_voting_average)
         val votingBar: ProgressBar = mediaView.findViewById(R.id.media_card_grid_voting_bar)
-        //        var imageTask: LoadPoster? = null
         var imageTask: LoadPosterImage? = null
 
         init {
@@ -76,20 +77,25 @@ class CategoryListAdapter(
                     }
 
                     val key = if (isMovie) "movie" else "show"
+                    if (hasWindowFocus()) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                            window?.exitTransition = null
+                            val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                                this,
+                                posterImage as View,
+                                "posterImage"
+                            )
+                            startActivity(Intent(activity.get()!!, activityClass).apply {
+                                putExtra(key, media)
+                            }, options.toBundle())
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                            this,
-                            posterImage as View,
-                            "posterImage"
-                        )
-                        startActivity(Intent(activity.get()!!, activityClass).apply {
-                            putExtra(key, media)
-                        }, options.toBundle())
-                    } else {
-                        startActivity(Intent(activity.get()!!, activityClass).apply {
-                            putExtra(key, media)
-                        })
+//                            overridePendingTransition(0, 0)
+                        } else {
+                            startActivity(Intent(activity.get()!!, activityClass).apply {
+                                putExtra(key, media)
+                            })
+                            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+                        }
                     }
                 } else {
                     onNetworkLostListener.onNetworkDialog()
@@ -256,7 +262,8 @@ class CategoryListAdapter(
         )
         holder.imageTask?.interruptThread()
         holder.imageTask =
-            LoadPosterImage(posterPath, holder.posterImage, activity).apply { loadImage()
+            LoadPosterImage(posterPath, holder.posterImage, activity).apply {
+                loadImage()
             }
 //        holder.imageTask!!.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, posterPath)
     }

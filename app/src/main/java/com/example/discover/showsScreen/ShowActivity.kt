@@ -1,11 +1,15 @@
 package com.example.discover.showsScreen
 
+import android.app.ProgressDialog
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -16,7 +20,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.discover.DiscoverApplication
 import com.example.discover.R
@@ -32,8 +35,9 @@ import com.example.discover.datamodel.tvshow.detail.Season
 import com.example.discover.datamodel.tvshow.detail.ShowDetails
 import com.example.discover.datamodel.tvshow.preview.ShowPreview
 import com.example.discover.firstScreen.GenreAdapter
-import com.example.discover.firstScreen.OnGenreSelectedListener
+import com.example.discover.firstScreen.OnGenreOrKeywordSelectedListener
 import com.example.discover.genreScreen.GenreMediaActivity
+import com.example.discover.keywordScreen.KeywordMediaActivity
 import com.example.discover.mediaScreenUtils.*
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.util.LoadPosterImage
@@ -49,10 +53,10 @@ import java.util.*
 import kotlin.math.abs
 
 class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedListener,
-    OnNetworkLostListener, OnGenreSelectedListener {
+    OnNetworkLostListener, OnGenreOrKeywordSelectedListener {
 
     private lateinit var coordinatorLayout: CoordinatorLayout
-    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private var progressDialog: ProgressDialog? = null
     private lateinit var appBarLayout: AppBarLayout
     private lateinit var tabLayout: TabLayout
     private lateinit var collapsingToolbarLayout: CollapsingToolbarLayout
@@ -68,7 +72,9 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     private lateinit var overview: TextView
 
     private var flag = 1
-    private var handler: Handler? = null
+//    private var handler: Handler? = null
+
+    private var timer: TimerTask? = null
 
     private lateinit var createdBy: RecyclerView
     private var viewPagerCallback: ViewPager2.OnPageChangeCallback? = null
@@ -97,14 +103,15 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 
         bindActivity(savedInstanceState)
 
-        swipeRefreshLayout = findViewById(R.id.show_detail_swipe_refresh)
-        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
-        swipeRefreshLayout.setOnRefreshListener {
-            Handler().postDelayed({
-                loadDataFromNetwork()
-                swipeRefreshLayout.isRefreshing = false
-            }, 1000)
-        }
+//        swipeRefreshLayout = findViewById(R.id.show_detail_swipe_refresh)
+//        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
+//        swipeRefreshLayout.setOnRefreshListener {
+//            Handler().postDelayed({
+//                timer?.cancel()
+//                loadDataFromNetwork()
+//                swipeRefreshLayout.isRefreshing = false
+//            }, 1000)
+//        }
 
         appBarLayout = findViewById(R.id.show_detail_appbar)
         collapsingToolbarLayout = findViewById<CollapsingToolbarLayout>(R.id.show_detail_collapsing)
@@ -112,7 +119,12 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         setSupportActionBar(toolbar)
 
         toolbar.setNavigationOnClickListener {
-            supportFinishAfterTransition()
+            if (shouldReverseSharedElementTransition())
+                supportFinishAfterTransition()
+            else {
+                finish()
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+            }
         }
 
         collapsingToolbarChanges()
@@ -124,6 +136,26 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         Log.d("showIntent", "$currentShow")
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.show_detail_menu, menu)
+        collapsingToolbarChanges()
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.refresh) {
+            flag = 1
+            progressDialog = ProgressDialog(this)
+            progressDialog?.setMessage("Refreshing")
+            progressDialog?.setCancelable(false)
+            progressDialog?.setInverseBackgroundForced(false)
+            progressDialog?.show()
+            timer?.cancel()
+            loadDataFromNetwork()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
     private fun collapsingToolbarChanges() {
         appBarLayout.addOnOffsetChangedListener(AppBarLayout.OnOffsetChangedListener { appBarLayout, verticalOffset ->
@@ -131,10 +163,10 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
                 if (abs(verticalOffset) == appBarLayout.totalScrollRange) {
                     toolbar.background = ContextCompat.getDrawable(this, R.drawable.main_background)
                     collapsingToolbarLayout.title = currentShow.name
-                    swipeRefreshLayout.isEnabled = false
+//                    swipeRefreshLayout.isEnabled = false
                 } else if (verticalOffset == 0) {
                     collapsingToolbarLayout.title = " "
-                    swipeRefreshLayout.isEnabled = true
+//                    swipeRefreshLayout.isEnabled = true
                 } else {
                     collapsingToolbarLayout.title = " "
                     toolbar.background = null
@@ -337,7 +369,7 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
                 default = true,
                 isGenre = true,
                 isMovie = false,
-                onGenreSelectedListener = this
+                onGenreOrKeywordSelectedListener = this
             ).apply {
                 setGenresList(genres)
             }
@@ -356,10 +388,16 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         keywordsList.layoutManager =
             GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
         keywordsList.setHasFixedSize(true)
-        keywordsList.adapter = GenreAdapter(default = true, isGenre = false).apply {
-            setKeywordList(keywords)
+        keywordsList.adapter =
+            GenreAdapter(
+                default = true,
+                isGenre = false,
+                isMovie = false,
+                onGenreOrKeywordSelectedListener = this
+            ).apply {
+                setKeywordList(keywords)
 
-        }
+            }
 
     }
 
@@ -512,13 +550,11 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 //        }
 //        backdrop.registerOnPageChangeCallback(viewPagerCallback!!)
 
-
+        progressDialog?.cancel()
     }
 
     private fun automaticPageChange(total: Int) {
         var currentPage = 0
-
-        var move = true
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
@@ -530,27 +566,31 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
             }
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                Log.d("onTabSelected", "${(tab?.position)?.plus(1)} $currentPage")
-                move = tab?.position?.plus(1) == currentPage
+                Log.d("onTabselected", "${tab?.position?.plus(1)}")
+                if (tab?.position?.plus(1) != currentPage) {
+                    tab?.position?.plus(1)?.let {
+                        currentPage = it
+                    }
+                }
             }
 
         })
 
-        handler = Handler()
+        val handler = Handler()
 
         val update = Runnable {
             if (currentPage == total) {
                 return@Runnable
             }
-            if (move)
-                backdrop.setCurrentItem(currentPage++, true);
+            backdrop.setCurrentItem(currentPage++, true);
         }
 
-        Timer().schedule(object : TimerTask() {
+        timer = object : TimerTask() {
             override fun run() {
-                handler?.post(update)
+                handler.post(update)
             }
-        }, 500, 5000)
+        }
+        Timer().schedule(timer, 500, 3000)
     }
 
     override fun onNetworkLostFragment() {
@@ -640,14 +680,26 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
-        supportFinishAfterTransition()
+        if (shouldReverseSharedElementTransition())
+            supportFinishAfterTransition()
+        else {
+            finish()
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }
     }
 
-    override fun onGenreSelected(isMovie: Boolean, genreId: Int) {
-        startActivity(Intent(this, GenreMediaActivity::class.java).apply {
+    override fun onGenreOrKeywordSelected(
+        isMovie: Boolean,
+        genreId: Int,
+        isGenre: Boolean,
+        name: String
+    ) {
+        val mClass =
+            if (isGenre) GenreMediaActivity::class.java else KeywordMediaActivity::class.java
+        startActivity(Intent(this, mClass).apply {
             putExtra("isMovie", isMovie)
             putExtra("id", genreId)
+            putExtra("name", name)
         })
         overridePendingTransition(R.anim.right_in, R.anim.left_out)
     }
@@ -664,11 +716,19 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         super.onDestroy()
         viewModel.handler.removeCallbacksAndMessages(null)
         viewModel.handler.looper.quit()
-        handler?.removeCallbacksAndMessages(null)
+//        handler?.removeCallbacksAndMessages(null)
 //        viewPagerCallback?.let {
 //            backdrop.unregisterOnPageChangeCallback(it)
 //        }
     }
 
+    private fun shouldReverseSharedElementTransition(): Boolean {
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || collapsingToolbarLayout.title != " ") {
+            Log.d("shouldReverseShared", "false")
+            return false
+        }
+        Log.d("shouldReverseShared", "true")
+        return true
+    }
 }
 

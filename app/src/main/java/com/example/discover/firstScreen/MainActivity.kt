@@ -31,7 +31,7 @@ import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.appbar.MaterialToolbar
 import java.lang.ref.WeakReference
 
-class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
+class MainActivity : AppCompatActivity(), OnGenreOrKeywordSelectedListener {
 
     private lateinit var collapsingToolbarLayout: CollapsingToolbarLayout
     private lateinit var toolbar: MaterialToolbar
@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
             default = false,
             isGenre = true,
             isMovie = true,
-            onGenreSelectedListener = this
+            onGenreOrKeywordSelectedListener = this
         )
         movieGenreList.adapter = adapter
 
@@ -172,7 +172,7 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
             default = false,
             isGenre = true,
             isMovie = false,
-            onGenreSelectedListener = this
+            onGenreOrKeywordSelectedListener = this
         )
         showGenreList.adapter = adapter
 
@@ -181,12 +181,20 @@ class MainActivity : AppCompatActivity(), OnGenreSelectedListener {
         })
     }
 
-    override fun onGenreSelected(isMovie: Boolean, genreId: Int) {
-        startActivity(Intent(this, GenreMediaActivity::class.java).apply {
-            putExtra("isMovie", isMovie)
-            putExtra("id", genreId)
-        })
-        overridePendingTransition(R.anim.right_in, R.anim.left_out)
+    override fun onGenreOrKeywordSelected(
+        isMovie: Boolean,
+        genreId: Int,
+        isGenre: Boolean,
+        name: String
+    ) {
+        if (isGenre) {
+            startActivity(Intent(this, GenreMediaActivity::class.java).apply {
+                putExtra("isMovie", isMovie)
+                putExtra("id", genreId)
+                putExtra("name", name)
+            })
+            overridePendingTransition(R.anim.right_in, R.anim.left_out)
+        }
     }
 
     override fun onPause() {

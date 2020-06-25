@@ -82,6 +82,7 @@ class FilterFragment : Fragment(), OnSortOptionSelectedListener,
         infoInitialisation(rootView)
 
         sortAction(rootView)
+
         listViewChange(rootView)
 
         //edit text
@@ -456,7 +457,7 @@ class FilterFragment : Fragment(), OnSortOptionSelectedListener,
         Log.d("networkRestore", viewModel.network.toString())
 
         if (viewModel.size == 0 && viewModel.discover)
-            displayLoadingFragment()
+            removeFilterFragment()
     }
 
     private fun clearViewModelData() {
@@ -488,7 +489,8 @@ class FilterFragment : Fragment(), OnSortOptionSelectedListener,
     override fun onNetworkLostFragment() {
         displayNoInternetConnectionFragment()
         removeResultFragment()
-        displayLoadingFragment()
+        removeLoadingFragment()
+//        displayLoadingFragment()
         viewModel.discover = true
         size.postValue(0)
     }

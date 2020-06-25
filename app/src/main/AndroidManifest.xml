@@ -30,6 +30,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".mediaDisplay.MediaListActivity" />
+        <activity android:name=".keywordScreen.KeywordMediaActivity" />
     </application>
 
 </manifest>

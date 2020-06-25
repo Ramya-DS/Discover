@@ -258,15 +258,18 @@ class LoadPosterImage(
                 imageView.scaleType = ImageView.ScaleType.FIT_XY
                 imageView.setImageBitmap(it)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    imageView.viewTreeObserver?.addOnPreDrawListener(object :
-                        ViewTreeObserver.OnPreDrawListener {
-                        override fun onPreDraw(): Boolean {
-                            imageView.viewTreeObserver?.removeOnPreDrawListener(this)
-                            activity.get()?.startPostponedEnterTransition()
-                            return true
-                        }
-                    })
+                    activity.get()?.startPostponedEnterTransition()
                 }
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                    imageView.viewTreeObserver?.addOnPreDrawListener(object :
+//                        ViewTreeObserver.OnPreDrawListener {
+//                        override fun onPreDraw(): Boolean {
+//                            imageView.viewTreeObserver?.removeOnPreDrawListener(this)
+//                            activity.get()?.startPostponedEnterTransition()
+//                            return true
+//                        }
+//                    })
+//                }
             } else {
                 imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
                 imageView.setImageDrawable(

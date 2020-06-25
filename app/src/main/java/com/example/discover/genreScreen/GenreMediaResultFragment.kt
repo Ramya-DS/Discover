@@ -2,6 +2,7 @@ package com.example.discover.genreScreen
 
 import android.app.Activity
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -22,12 +23,12 @@ import com.example.discover.datamodel.movie.preview.MoviePreview
 import com.example.discover.datamodel.multiSearch.MultiSearch
 import com.example.discover.datamodel.tvshow.preview.ShowPreview
 import com.example.discover.filterScreen.ui.FilterFragment
+import com.example.discover.keywordScreen.KeywordMediaActivity
 import com.example.discover.mediaDisplay.MediaDetailAdapter
 import com.example.discover.mediaDisplay.MediaListActivity
 import com.example.discover.mediaDisplay.OnAdapterCreatedListener
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.searchScreen.SearchActivity
-import com.example.discover.util.NoInternetFragment
 import java.lang.ref.WeakReference
 import kotlin.math.roundToInt
 
@@ -64,6 +65,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         arguments?.let {
             isLinear = arguments!!.getBoolean("isLinear")
             val type = arguments!!.getString("type")
@@ -202,6 +204,9 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
         if (activity is SearchActivity)
             onAdapterCreatedListener = context as SearchActivity
 
+        if (activity is KeywordMediaActivity)
+            onAdapterCreatedListener = context as KeywordMediaActivity
+
         if (parentFragment is FilterFragment)
             onAdapterCreatedListener = parentFragment as FilterFragment
     }
@@ -223,6 +228,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
                             if (activity is GenreMediaActivity) (activity as GenreMediaActivity).fetchMore()
                             if (activity is SearchActivity) (activity as SearchActivity).fetchMore()
                             if (parentFragment is FilterFragment) (parentFragment as FilterFragment).fetchMore()
+                            if (activity is KeywordMediaActivity) (activity as KeywordMediaActivity).fetchMore()
                             if (activity is MediaListActivity) (activity as MediaListActivity).fetchMore()
                         }
                     }
@@ -318,6 +324,9 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
 
         if (activity is MediaListActivity)
             (activity as MediaListActivity).onNetworkDialog()
+
+        if (activity is KeywordMediaActivity)
+            (activity as KeywordMediaActivity).onNetworkDialog()
     }
 
     override fun onNetworkDialogDismiss() {
@@ -339,6 +348,9 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
         if (activity is MediaListActivity)
             (activity as MediaListActivity).onNetworkDialogDismiss()
 
+        if (activity is KeywordMediaActivity)
+            (activity as KeywordMediaActivity).onNetworkDialogDismiss()
+
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -354,6 +366,10 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
 
         if (activity is GenreMediaActivity)
             (activity as GenreMediaActivity).restorePosition(obtainPosition())
+
+        if (activity is KeywordMediaActivity)
+            (activity as KeywordMediaActivity).restorePosition(obtainPosition())
+
     }
 
     fun restorePosition(position: Int) {

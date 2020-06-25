@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -14,7 +15,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.discover.DiscoverApplication
 import com.example.discover.R
@@ -48,7 +48,7 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     private var flag = 1
     private lateinit var handler: Handler
 
-    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    //    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var coordinatorLayout: CoordinatorLayout
     private lateinit var poster: ViewPager2
     private lateinit var tabLayout: TabLayout
@@ -60,6 +60,7 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     private lateinit var currentSeason: Season
 
     private lateinit var progressDialog: ProgressDialog
+    private var refreshingDialog: ProgressDialog? = null
     private var viewPagerCallback: ViewPager2.OnPageChangeCallback? = null
     private var snackBar: NetworkSnackbar? = null
 
@@ -67,6 +68,9 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_season)
+
+        val toolbar: MaterialToolbar = findViewById(R.id.season_toolbar)
+        setSupportActionBar(toolbar)
 
         progressDialog = ProgressDialog(this)
         progressDialog.setMessage("Loading")
@@ -78,21 +82,36 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
 
         bindActivity(savedInstanceState)
 
-        swipeRefreshLayout = findViewById(R.id.season_swipe_refresh)
-        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
-        swipeRefreshLayout.setOnRefreshListener {
-            Handler().postDelayed({
-                loadDetailsFromNetwork()
-                swipeRefreshLayout.isRefreshing = false
-            }, 1000)
-        }
+//        swipeRefreshLayout = findViewById(R.id.season_swipe_refresh)
+//        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
+//        swipeRefreshLayout.setOnRefreshListener {
+//            Handler().postDelayed({
+//                loadDetailsFromNetwork()
+//                swipeRefreshLayout.isRefreshing = false
+//            }, 1000)
+//        }
 
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.movie_detail_menu, menu)
+        menuInflater.inflate(R.menu.show_detail_menu, menu)
         return true
     }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.refresh) {
+            flag = 1
+            refreshingDialog = ProgressDialog(this)
+            refreshingDialog?.setMessage("Refreshing")
+            refreshingDialog?.setCancelable(false)
+            refreshingDialog?.setInverseBackgroundForced(false)
+            refreshingDialog?.show()
+            loadDetailsFromNetwork()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
 
     private fun bindActivity(savedInstanceState: Bundle?) {
         viewModel = ViewModelProvider(
@@ -265,6 +284,8 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
 
         automaticPageChange(total)
 
+        refreshingDialog?.cancel()
+
 //        viewPagerCallback = object : ViewPager2.OnPageChangeCallback() {
 //
 //            override fun onPageSelected(position: Int) {
@@ -341,8 +362,6 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     private fun automaticPageChange(total: Int) {
         var currentPage = 0
 
-        var move = true
-
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
 //                Log.d("onTabReselected", "${tab?.position} $currentPage")
@@ -353,8 +372,10 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
             }
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                Log.d("onTabSelected", "${(tab?.position)?.plus(1)} $currentPage")
-                move = tab?.position?.plus(1) == currentPage
+                if (tab?.position?.plus(1) != currentPage)
+                    tab?.position?.plus(1)?.let {
+                        currentPage = it
+                    }
             }
 
         })
@@ -365,8 +386,7 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
             if (currentPage == total) {
                 return@Runnable
             }
-            if (move)
-                poster.setCurrentItem(currentPage++, true);
+            poster.setCurrentItem(currentPage++, true);
         }
 
         Timer().schedule(object : TimerTask() {

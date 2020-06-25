@@ -13,7 +13,7 @@ class GenreAdapter(
     private val default: Boolean,
     private val isGenre: Boolean,
     private val isMovie: Boolean? = null,
-    private val onGenreSelectedListener: OnGenreSelectedListener? = null
+    private val onGenreOrKeywordSelectedListener: OnGenreOrKeywordSelectedListener? = null
 ) :
     RecyclerView.Adapter<GenreAdapter.GenreViewHolder>() {
 
@@ -32,7 +32,12 @@ class GenreAdapter(
 
         override fun onClick(v: View?) {
             isMovie?.let {
-                onGenreSelectedListener?.onGenreSelected(isMovie, id)
+                onGenreOrKeywordSelectedListener?.onGenreOrKeywordSelected(
+                    isMovie,
+                    id,
+                    isGenre,
+                    text.text.toString()
+                )
             }
         }
     }
@@ -58,8 +63,10 @@ class GenreAdapter(
         if (isGenre) {
             holder.id = genres[position].id
             holder.text.text = genres[position].name
-        } else
+        } else {
+            holder.id = keywords[position].id
             holder.text.text = keywords[position].name
+        }
     }
 
     fun setGenresList(list: List<Genres>) {

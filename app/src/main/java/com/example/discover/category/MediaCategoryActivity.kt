@@ -3,6 +3,7 @@ package com.example.discover.category
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.transition.Fade
 import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -49,7 +50,8 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             postponeEnterTransition()
-            window.enterTransition = null
+            window.sharedElementsUseOverlay = true
+//            window.exitTransition = null
         }
         getIntentData()
 
@@ -387,4 +389,10 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
         viewModel.handler.looper.quit()
     }
 
+    override fun onResume() {
+        super.onResume()
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            window?.exitTransition = Fade()
+//        }
+    }
 }

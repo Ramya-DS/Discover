@@ -12,6 +12,11 @@
         style="@style/ToolbarStyle"
         app:navigationIcon="@drawable/ic_back" />
 
+    <FrameLayout
+        android:id="@+id/media_category_network_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/media_category_swipe_refresh"
         android:layout_width="match_parent"
@@ -25,11 +30,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
-
-                <FrameLayout
-                    android:id="@+id/media_category_network_container"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
 
                 <TextView
                     android:id="@+id/category_title_1"

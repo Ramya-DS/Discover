@@ -1,5 +1,6 @@
 package com.example.discover.searchScreen
 
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
@@ -35,13 +36,13 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
     private lateinit var searchView: SearchView
     private lateinit var viewModel: SearchViewModel
     private lateinit var resultStatus: TextView
-
     private var isMovie: Boolean? = null
     private var isLinear = true
     private var displayFragment: GenreMediaResultFragment? = null
     private lateinit var textView: TextView
     private lateinit var filterIcon: ImageView
     private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    private lateinit var drawerLayout: DrawerLayout
     private var mQuery = ""
 
     //    private var matrixCursor: MatrixCursor? = null
@@ -52,6 +53,8 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
         setContentView(R.layout.activity_search)
 
         viewModelInitialisation()
+
+        drawerLayout = findViewById(R.id.search_drawerLayout)
 
         swipeRefreshLayout = findViewById(R.id.search_swipe_refresh)
         swipeRefreshLayout.setOnRefreshListener(this)
@@ -72,7 +75,8 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
         val navigationIcon: ImageButton = findViewById(R.id.search_back)
 
         navigationIcon.setOnClickListener {
-            finish()
+            searchView.clearFocus()
+            supportFinishAfterTransition()
         }
         initializeSearchView()
     }
@@ -178,8 +182,6 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
     }
 
     private fun sideSheetInitialisation(searchView: SearchView) {
-
-        val drawerLayout: DrawerLayout = findViewById(R.id.search_drawerLayout)
         searchView.clearFocus()
         val filterButton: MaterialButton = findViewById(R.id.search_filterButton)
 
@@ -418,7 +420,7 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
 
     override fun onNetworkLostFragment() {
         displayNoInternetConnectionFragment()
-        displayLoadingFragment()
+        removeLoadingFragment()
     }
 
     override fun onNetworkDialog() {
@@ -464,8 +466,7 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
 
     override fun onResume() {
         super.onResume()
-        Log.d("onResume", viewModel.focus.toString())
-        if (viewModel.focus)
+        if (viewModel.focus && !drawerLayout.isDrawerOpen(GravityCompat.END))
             getKeyboard()
         else
             resultStatus.requestFocus()
@@ -509,10 +510,10 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
                 }
             }
 
-            if (!(application as DiscoverApplication).checkConnectivity() && isResultEmpty) {
-                displayNoInternetConnectionFragment()
-                displayLoadingFragment()
-            }
+//            if (!(application as DiscoverApplication).checkConnectivity() && isResultEmpty) {
+//                displayNoInternetConnectionFragment()
+//                displayLoadingFragment()
+//            }
 
             if (viewModel.fragmentExists) {
                 displayNoInternetConnectionFragment()
@@ -526,6 +527,10 @@ class SearchActivity : AppCompatActivity(), DrawerLayout.DrawerListener, OnAdapt
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
+        searchView.clearFocus()
+        if (drawerLayout.isDrawerOpen(GravityCompat.END))
+            drawerLayout.closeDrawer(GravityCompat.END)
+        else
+            supportFinishAfterTransition()
     }
 }

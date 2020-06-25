@@ -1,14 +1,20 @@
 package com.example.discover.movieScreen
 
+import android.app.ProgressDialog
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.transition.ChangeBounds
+import android.transition.Fade
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.View.GONE
+import android.view.animation.DecelerateInterpolator
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -20,7 +26,6 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.viewpager2.widget.ViewPager2
 import com.example.discover.DiscoverApplication
 import com.example.discover.R
@@ -36,8 +41,9 @@ import com.example.discover.datamodel.movie.detail.MovieDetails
 import com.example.discover.datamodel.movie.preview.MoviePreview
 import com.example.discover.datamodel.review.Review
 import com.example.discover.firstScreen.GenreAdapter
-import com.example.discover.firstScreen.OnGenreSelectedListener
+import com.example.discover.firstScreen.OnGenreOrKeywordSelectedListener
 import com.example.discover.genreScreen.GenreMediaActivity
+import com.example.discover.keywordScreen.KeywordMediaActivity
 import com.example.discover.mediaScreenUtils.*
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.util.LoadPosterImage
@@ -54,10 +60,11 @@ import kotlin.math.abs
 
 class MovieActivity : AppCompatActivity(),
     OnReviewClickListener,
-    OnUrlSelectedListener, OnNetworkLostListener, OnGenreSelectedListener {
+    OnUrlSelectedListener, OnNetworkLostListener, OnGenreOrKeywordSelectedListener {
 
-    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
+    //    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var coordinatorLayout: CoordinatorLayout
+    private var progressDialog: ProgressDialog? = null
     private lateinit var appBarLayout: AppBarLayout
     private lateinit var tabLayout: TabLayout
     private lateinit var collapsingToolbarLayout: CollapsingToolbarLayout
@@ -73,7 +80,7 @@ class MovieActivity : AppCompatActivity(),
     private lateinit var infoButton: ImageButton
 
     private var flag = 1
-    private lateinit var timer: TimerTask
+    private var timer: TimerTask? = null
 
     private lateinit var cast: RecyclerView
     private lateinit var crew: RecyclerView
@@ -95,23 +102,28 @@ class MovieActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movie_detail)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             postponeEnterTransition()
+//            window.enterTransition = null
+//            window?.sharedElementEnterTransition = ChangeBounds().setDuration(200)
+//            window?.sharedElementExitTransition =
+//                ChangeBounds().setDuration(200).setInterpolator(DecelerateInterpolator())
         }
 
         fetchIntentData()
         bindActivity(savedInstanceState)
 
-        swipeRefreshLayout = findViewById(R.id.movie_detail_swipe_refresh)
-        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
-        swipeRefreshLayout.setOnRefreshListener {
-            Handler().postDelayed({
-                flag = 1
-                timer.cancel()
-                loadDetailsFromNetwork()
-                swipeRefreshLayout.isRefreshing = false
-            }, 1000)
-        }
+//        swipeRefreshLayout = findViewById(R.id.movie_detail_swipe_refresh)
+//        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
+//        swipeRefreshLayout.setOnRefreshListener {
+//            Handler().postDelayed({
+//                flag = 1
+//                timer?.cancel()
+//                loadDetailsFromNetwork()
+//                swipeRefreshLayout.isRefreshing = false
+//            }, 1000)
+//        }
 
         appBarLayout = findViewById(R.id.movie_detail_app_bar)
         collapsingToolbarLayout = findViewById(R.id.movie_detail_collapsing)
@@ -119,7 +131,12 @@ class MovieActivity : AppCompatActivity(),
         setSupportActionBar(toolbar)
 
         toolbar.setNavigationOnClickListener {
-            supportFinishAfterTransition()
+            if (shouldReverseSharedElementTransition())
+                supportFinishAfterTransition()
+            else {
+                finish()
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+            }
         }
     }
 
@@ -138,10 +155,10 @@ class MovieActivity : AppCompatActivity(),
                     toolbar.background = ContextCompat.getDrawable(this, R.drawable.main_background)
                     collapsingToolbarLayout.title = currentMovie.title
                     infoItem?.isVisible = true
-                    swipeRefreshLayout.isEnabled = false
+//                    swipeRefreshLayout.isEnabled = false
                 } else if (verticalOffset == 0) {
                     collapsingToolbarLayout.title = " "
-                    swipeRefreshLayout.isEnabled = true
+//                    swipeRefreshLayout.isEnabled = true
                     infoItem?.isVisible = false
                 } else {
                     collapsingToolbarLayout.title = " "
@@ -156,20 +173,34 @@ class MovieActivity : AppCompatActivity(),
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == R.id.info_menu) {
-            displayInfoDialog(infoDialog!!)
-            return true
-        } else if (item.itemId == R.id.externalLink) {
-            if (linkDialog != null) displayInfoDialog(linkDialog!!)
-            else Toast.makeText(
-                this,
-                "Please wait till loading information",
-                Toast.LENGTH_SHORT
-            ).show()
+        when (item.itemId) {
+            R.id.info_menu -> {
+                displayInfoDialog(infoDialog!!)
+                return true
+            }
+            R.id.externalLink -> {
+                if (linkDialog != null) displayInfoDialog(linkDialog!!)
+                else Toast.makeText(
+                    this,
+                    "Please wait till loading information",
+                    Toast.LENGTH_SHORT
+                ).show()
 
-            return true
+                return true
+            }
+            R.id.refresh -> {
+                flag = 1
+                progressDialog = ProgressDialog(this)
+                progressDialog?.setMessage("Refreshing")
+                progressDialog?.setCancelable(false)
+                progressDialog?.setInverseBackgroundForced(false)
+                progressDialog?.show()
+                timer?.cancel()
+                loadDetailsFromNetwork()
+                return true
+            }
+            else -> return super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun bindActivity(savedInstanceState: Bundle?) {
@@ -177,6 +208,7 @@ class MovieActivity : AppCompatActivity(),
         backdropImage = findViewById(R.id.movie_detail_backdrop)
         tabLayout = findViewById(R.id.movie_detail_tab_layout)
         posterImage = findViewById(R.id.movie_detail_poster)
+
         rating = findViewById(R.id.movie_detail_rating)
         title = findViewById(R.id.movie_detail_title)
         tagLine = findViewById(R.id.movie_detail_tagline)
@@ -266,7 +298,8 @@ class MovieActivity : AppCompatActivity(),
             this@MovieActivity.rating.text = "${currentMovie.vote_average} "
             this@MovieActivity.tagLine.text = "Tagline: -"
             this@MovieActivity.title.text = title
-            infoDialog = InfoDialogFragment.newInfoInstance(createPreviewInfo(), "More Information")
+            infoDialog =
+                InfoDialogFragment.newInfoInstance(createPreviewInfo(), "More Information")
         }
     }
 
@@ -345,14 +378,15 @@ class MovieActivity : AppCompatActivity(),
             return
         }
 
-        genresList.layoutManager = GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
+        genresList.layoutManager =
+            GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
         genresList.setHasFixedSize(true)
         genresList.adapter =
             GenreAdapter(
                 default = true,
                 isGenre = true,
                 isMovie = true,
-                onGenreSelectedListener = this
+                onGenreOrKeywordSelectedListener = this
             ).apply {
                 setGenresList(genres)
             }
@@ -368,9 +402,15 @@ class MovieActivity : AppCompatActivity(),
             return
         }
 
-        keywordList.layoutManager = GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
+        keywordList.layoutManager =
+            GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
         keywordList.setHasFixedSize(true)
-        keywordList.adapter = GenreAdapter(default = true, isGenre = false).apply {
+        keywordList.adapter = GenreAdapter(
+            default = true,
+            isGenre = false,
+            isMovie = true,
+            onGenreOrKeywordSelectedListener = this
+        ).apply {
             setKeywordList(keywords)
         }
     }
@@ -425,7 +465,8 @@ class MovieActivity : AppCompatActivity(),
             reviewsList.visibility = GONE
             return
         }
-        reviewsList.layoutManager = GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
+        reviewsList.layoutManager =
+            GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
         reviewsList.setHasFixedSize(true)
         reviewsList.adapter = ReviewAdapter(reviews, this)
     }
@@ -598,12 +639,11 @@ class MovieActivity : AppCompatActivity(),
 //            }
 //        }
 //        backdropImage.registerOnPageChangeCallback(viewPagerCallback!!)
+        progressDialog?.dismiss()
     }
 
     private fun automaticPageChange(total: Int) {
         var currentPage = 0
-
-        var move = true
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
@@ -613,7 +653,12 @@ class MovieActivity : AppCompatActivity(),
             }
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                move = tab?.position?.plus(1) == currentPage
+                Log.d("onTabselected", "${tab?.position?.plus(1)}")
+                if (tab?.position?.plus(1) != currentPage) {
+                    tab?.position?.plus(1)?.let {
+                        currentPage = it
+                    }
+                }
             }
         })
 
@@ -622,8 +667,7 @@ class MovieActivity : AppCompatActivity(),
             if (currentPage == total) {
                 return@Runnable
             }
-            if (move)
-                backdropImage.setCurrentItem(currentPage++, true);
+            backdropImage.setCurrentItem(currentPage++, true);
         }
         timer = object : TimerTask() {
             override fun run() {
@@ -724,14 +768,27 @@ class MovieActivity : AppCompatActivity(),
     }
 
     override fun onBackPressed() {
-        super.onBackPressed()
-        supportFinishAfterTransition()
+        if (shouldReverseSharedElementTransition())
+            supportFinishAfterTransition()
+        else {
+            finish()
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }
     }
 
-    override fun onGenreSelected(isMovie: Boolean, genreId: Int) {
-        startActivity(Intent(this, GenreMediaActivity::class.java).apply {
+    override fun onGenreOrKeywordSelected(
+        isMovie: Boolean,
+        genreId: Int,
+        isGenre: Boolean,
+        name: String
+    ) {
+        val mClass =
+            if (isGenre) GenreMediaActivity::class.java else KeywordMediaActivity::class.java
+
+        startActivity(Intent(this, mClass).apply {
             putExtra("isMovie", isMovie)
             putExtra("id", genreId)
+            putExtra("name", name)
         })
         overridePendingTransition(R.anim.right_in, R.anim.left_out)
     }
@@ -742,5 +799,21 @@ class MovieActivity : AppCompatActivity(),
             if (list.contains(i.id))
                 genreList.add(i)
         return genreList
+    }
+
+    private fun shouldReverseSharedElementTransition(): Boolean {
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || collapsingToolbarLayout.title != " ") {
+            Log.d("shouldReverseShared", "false")
+            return false
+        }
+        Log.d("shouldReverseShared", "true")
+        return true
+    }
+
+    override fun onResume() {
+        super.onResume()
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+////            window?.exitTransition = Fade()
+//        }
     }
 }
