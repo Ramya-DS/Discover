@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,8 @@ import android.widget.TextView
 import androidx.core.app.ActivityOptionsCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.discover.DiscoverApplication
 import com.example.discover.R
@@ -41,6 +44,8 @@ class CategoryListAdapter(
     private val tvList = mutableListOf<ShowPreview>()
 
     private val mediaList = mutableListOf<MultiSearch>()
+
+    private lateinit var layoutManager: LinearLayoutManager
 
     lateinit var category: String
 
@@ -77,6 +82,13 @@ class CategoryListAdapter(
                     }
 
                     val key = if (isMovie) "movie" else "show"
+                    Log.d(
+                        "visible", "${layoutManager.isViewPartiallyVisible(
+                            itemView,
+                            true,
+                            false
+                        )}"
+                    )
                     if (hasWindowFocus()) {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && resources.configuration.orientation != Configuration.ORIENTATION_LANDSCAPE) {
                             val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
@@ -87,6 +99,7 @@ class CategoryListAdapter(
                             startActivity(Intent(activity.get()!!, activityClass).apply {
                                 putExtra(key, media)
                             }, options.toBundle())
+                            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
                         } else {
                             startActivity(Intent(activity.get()!!, activityClass).apply {
                                 putExtra(key, media)
@@ -509,5 +522,10 @@ class CategoryListAdapter(
                 vote_average, 0
             )
         }
+    }
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        layoutManager = recyclerView.layoutManager as LinearLayoutManager
     }
 }

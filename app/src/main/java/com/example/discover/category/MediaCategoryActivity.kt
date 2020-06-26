@@ -48,9 +48,8 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
         setContentView(R.layout.activity_media_category)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            postponeEnterTransition()
-            window.enterTransition = null
-            window.exitTransition = null
+//            window.enterTransition = null
+//            window.exitTransition = null
         }
 
         getIntentData()

@@ -120,7 +120,16 @@ class DiscoverApplication : Application() {
         languages = getAllLanguages()
 
         val cacheDir = getDiskCacheDir(this, DISK_CACHE_SUB_DIR)
-        InitDiskCacheTask().execute(cacheDir)
+
+//        InitDiskCacheTask().execute(cacheDir)
+
+        handler.post {
+            diskCacheLock.withLock {
+                diskLruCache = DiskLruCache.open(cacheDir, 1, 1, DISK_CACHE_SIZE)
+                diskCacheStarting = false // Finished initialization
+                diskCacheLockCondition.signalAll() // Wake any waiting threads
+            }
+        }
     }
 
     private fun accessCache(): LruCache<String, Bitmap> {
@@ -133,17 +142,17 @@ class DiscoverApplication : Application() {
         }
     }
 
-    internal inner class InitDiskCacheTask : AsyncTask<File, Void, Void>() {
-        override fun doInBackground(vararg params: File): Void? {
-            diskCacheLock.withLock {
-                val cacheDir = params[0]
-                diskLruCache = DiskLruCache.open(cacheDir, 1, 1, DISK_CACHE_SIZE)
-                diskCacheStarting = false // Finished initialization
-                diskCacheLockCondition.signalAll() // Wake any waiting threads
-            }
-            return null
-        }
-    }
+//    internal inner class InitDiskCacheTask : AsyncTask<File, Void, Void>() {
+//        override fun doInBackground(vararg params: File): Void? {
+//            diskCacheLock.withLock {
+//                val cacheDir = params[0]
+//                diskLruCache = DiskLruCache.open(cacheDir, 1, 1, DISK_CACHE_SIZE)
+//                diskCacheStarting = false // Finished initialization
+//                diskCacheLockCondition.signalAll() // Wake any waiting threads
+//            }
+//            return null
+//        }
+//    }
 
     private fun getDiskCacheDir(context: Context, uniqueName: String): File {
         val cachePath =
@@ -256,6 +265,7 @@ class DiscoverApplication : Application() {
             override fun onFailure(call: Call<GenreResult>, t: Throwable) {
                 runBlocking {
                     withContext(Dispatchers.IO) {
+                        Log.d("genres","failure")
                         list.postValue(genreDao.getMediaGenres(isMovie))
                     }
                 }
@@ -263,6 +273,7 @@ class DiscoverApplication : Application() {
 
             override fun onResponse(call: Call<GenreResult>, response: Response<GenreResult>) {
                 if (response.isSuccessful) {
+                    Log.d("genres","successful")
                     insertAllGenres(response.body()!!.genres, isMovie)
                     list.postValue(response.body()!!.genres)
                 } else Log.d("OnError", fetchErrorMessage(response.errorBody()!!))
@@ -309,6 +320,7 @@ class DiscoverApplication : Application() {
             override fun onFailure(call: Call<List<Language>>, t: Throwable) {
                 runBlocking {
                     withContext(Dispatchers.IO) {
+                        Log.d("languages","failure")
                         languages.postValue(languageDao.getAllLanguages())
                     }
                 }
@@ -319,6 +331,7 @@ class DiscoverApplication : Application() {
                 response: Response<List<Language>>
             ) {
                 if (response.isSuccessful) {
+                    Log.d("languages","successful")
                     insertAllLanguages(response.body()!!)
                     languages.postValue(response.body()!!)
                 } else
@@ -337,7 +350,6 @@ class DiscoverApplication : Application() {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
-        Log.d("isConnected", isConnected.toString())
         return isConnected
     }
 

@@ -92,11 +92,8 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         setContentView(R.layout.activity_show)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.enterTransition = null
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            postponeEnterTransition()
+//            postponeEnterTransition()
+//            window.enterTransition = null
         }
 
         fetchIntentData()

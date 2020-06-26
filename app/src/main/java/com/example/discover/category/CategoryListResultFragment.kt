@@ -5,9 +5,9 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AnimationUtils
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.discover.R
 import com.example.discover.datamodel.movie.preview.MoviePreview
@@ -50,8 +50,10 @@ class CategoryListResultFragment : Fragment() {
 
         recyclerView = rootView.findViewById(R.id.searchResult)
         recyclerView.setHasFixedSize(true)
+        recyclerView.setItemViewCacheSize(20)
         recyclerView.layoutManager =
-            GridLayoutManager(context, 1, GridLayoutManager.HORIZONTAL, false)
+            LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+//            GridLayoutManager(context, 1, GridLayoutManager.HORIZONTAL, false)
         adapter = CategoryListAdapter(
             isMovie,
             WeakReference(activity!!),
@@ -85,7 +87,7 @@ class CategoryListResultFragment : Fragment() {
     }
 
     fun lastElementPosition(): Int {
-        return (recyclerView.layoutManager as GridLayoutManager).findFirstVisibleItemPosition()
+        return (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
     }
 
     private fun restoreElementPosition(position: Int) {

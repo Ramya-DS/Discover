@@ -2,7 +2,6 @@ package com.example.discover.genreScreen
 
 import android.app.Activity
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -95,6 +94,7 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
                         recyclerView = rootView.findViewById(R.id.searchResult)
                         if (isLinear) {
                             recyclerView.layoutManager = LinearLayoutManager(context!!)
+                            recyclerView.setHasFixedSize(true)
                             linearAdapter = MediaDetailAdapter(
                                 WeakReference(activity!!),
                                 isMovie,

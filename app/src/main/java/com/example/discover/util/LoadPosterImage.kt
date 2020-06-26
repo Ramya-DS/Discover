@@ -252,9 +252,9 @@ class LoadPosterImage(
             if (it != null) {
                 imageView.scaleType = ImageView.ScaleType.FIT_XY
                 imageView.setImageBitmap(it)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    activity.get()?.startPostponedEnterTransition()
-                }
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//                    activity.get()?.startPostponedEnterTransition()
+//                }
             } else {
                 imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
                 imageView.setImageDrawable(

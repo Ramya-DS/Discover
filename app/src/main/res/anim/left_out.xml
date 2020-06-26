@@ -5,11 +5,11 @@
         android:fromXDelta="0"
         android:fromYDelta="1.0"
         android:toXDelta="-100%p"
-        android:duration="500"/>
+        android:duration="250"/>
     <alpha
         android:fromAlpha="1"
         android:toAlpha="0"
-        android:duration="500"/>
+        android:duration="250"/>
 <!--    <scale-->
 <!--        android:duration="500"-->
 <!--        android:fromXScale="1.0"-->

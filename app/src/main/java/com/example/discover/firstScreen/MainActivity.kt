@@ -2,7 +2,6 @@ package com.example.discover.firstScreen
 
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
@@ -19,6 +18,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.discover.DiscoverApplication
 import com.example.discover.R
@@ -48,9 +48,9 @@ class MainActivity : AppCompatActivity(), OnGenreOrKeywordSelectedListener {
 
         bindActivity()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            toolbar.outlineProvider = null
-        }
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            toolbar.outlineProvider = null
+//        }
 
         searchInitiation()
         discoverFilter()
@@ -148,8 +148,7 @@ class MainActivity : AppCompatActivity(), OnGenreOrKeywordSelectedListener {
     }
 
     private fun movieGenres() {
-        movieGenreList.layoutManager =
-            GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
+        movieGenreList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         movieGenreList.setHasFixedSize(true)
         val adapter = GenreAdapter(
             default = false,
@@ -165,8 +164,7 @@ class MainActivity : AppCompatActivity(), OnGenreOrKeywordSelectedListener {
     }
 
     private fun showGenres() {
-        showGenreList.layoutManager =
-            GridLayoutManager(this, 1, GridLayoutManager.HORIZONTAL, false)
+        showGenreList.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         showGenreList.setHasFixedSize(true)
         val adapter = GenreAdapter(
             default = false,

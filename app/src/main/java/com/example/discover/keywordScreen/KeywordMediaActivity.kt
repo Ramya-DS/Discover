@@ -45,10 +45,6 @@ class KeywordMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_genre_media)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            postponeEnterTransition()
-        }
-
         displayLoadingFragment()
 
         fetchIntent()

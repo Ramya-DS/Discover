@@ -94,15 +94,16 @@ class MovieActivity : AppCompatActivity(),
 
     private lateinit var currentMovie: MoviePreview
 
-    private var snackbar: NetworkSnackbar? = null
+    private var snackBar: NetworkSnackbar? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movie_detail)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            postponeEnterTransition()
-            window.enterTransition = null
+//            postponeEnterTransition()
+//            window.enterTransition = null
+//            window.exitTransition = null
 //            window?.sharedElementEnterTransition = ChangeBounds().setDuration(200)
 //            window?.sharedElementExitTransition =
 //                ChangeBounds().setDuration(200).setInterpolator(DecelerateInterpolator())
@@ -664,7 +665,7 @@ class MovieActivity : AppCompatActivity(),
     }
 
     override fun onNetworkDialog() {
-        snackbar = if ((application as DiscoverApplication).checkConnectivity()) {
+        snackBar = if ((application as DiscoverApplication).checkConnectivity()) {
             if (flag < 256)
                 NetworkSnackbar.make(
                     coordinatorLayout,
@@ -674,11 +675,11 @@ class MovieActivity : AppCompatActivity(),
                 null
         } else
             NetworkSnackbar.make(coordinatorLayout).setBehavior(NoSwipeBehavior())
-        snackbar?.show()
+        snackBar?.show()
     }
 
     override fun onNetworkDialogDismiss() {
-        snackbar?.dismiss()
+        snackBar?.dismiss()
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {

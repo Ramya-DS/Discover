@@ -33,10 +33,6 @@ class MediaListActivity : AppCompatActivity(), OnAdapterCreatedListener, OnNetwo
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_list)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            postponeEnterTransition()
-        }
-
         viewModel = ViewModelProvider(
             this,
             ViewModelProvider.AndroidViewModelFactory.getInstance(application)
