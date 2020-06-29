@@ -124,8 +124,13 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
         viewModel.onNetworkLostListener = this
 
         val toolbar: MaterialToolbar = findViewById(R.id.season_toolbar)
+        setSupportActionBar(toolbar)
+
+        val text = "$showName ${currentSeason.name}"
+        toolbar.title = text
+
         toolbar.setNavigationOnClickListener {
-            supportFinishAfterTransition()
+            overridePendingTransition(R.anim.fade_in,R.anim.fade_out)
         }
 
         coordinatorLayout = findViewById(R.id.season_coordinator)
@@ -134,8 +139,7 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
 
         tabLayout = findViewById(R.id.season_tab_layout)
 
-        val text = "$showName ${currentSeason.name}"
-        toolbar.title = text
+
 
         if (savedInstanceState == null) {
             loadDetailsFromNetwork()
@@ -336,7 +340,7 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
 
     override fun onBackPressed() {
         super.onBackPressed()
-        supportFinishAfterTransition()
+        overridePendingTransition(R.anim.fade_in,R.anim.fade_out)
     }
 
     override fun onNetworkLostFragment() {

@@ -266,7 +266,6 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
     }
 
     override fun onNetworkLostFragment() {
-
     }
 
     override fun onNetworkDialog() {

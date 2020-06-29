@@ -495,6 +495,7 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
                 putExtra("show name", currentShow.name)
             }
             startActivity(intent)
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
         } else
             onNetworkDialog()
     }
@@ -535,18 +536,6 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         }.attach()
 
         automaticPageChange(total)
-//        viewPagerCallback = object : ViewPager2.OnPageChangeCallback() {
-//
-//            override fun onPageSelected(position: Int) {
-//                if (position == 0) {
-//                    automaticPageChange(total)
-//                }
-//                super.onPageSelected(position)
-//
-//            }
-//        }
-//        backdrop.registerOnPageChangeCallback(viewPagerCallback!!)
-
         progressDialog?.cancel()
     }
 
@@ -574,7 +563,6 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         })
 
         handler = Handler()
-
         val update = Runnable {
             if (currentPage == total) {
                 return@Runnable

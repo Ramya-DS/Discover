@@ -1,8 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><!--<androidx.swiperefreshlayout.widget.SwipeRefreshLayout -->
-<!--    android:id="@+id/movie_detail_swipe_refresh"-->
-<!--    android:layout_width="match_parent"-->
-<!--    android:layout_height="match_parent">-->
-
+<?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/movie_detail_coordinator"
@@ -23,8 +19,8 @@
             android:background="@android:color/transparent"
             app:collapsedTitleTextAppearance="@style/collapsedTitleAppearance"
             app:contentScrim="@color/colorPrimary"
-            app:title=" "
-            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
+            app:title=" ">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -57,21 +53,19 @@
                 android:background="@android:color/transparent"
                 android:orientation="vertical">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fitsSystemWindows="true">
+                    android:layout_height="wrap_content">
 
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/movie_detail_poster_card"
                         android:layout_width="100dp"
                         android:layout_height="150dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentTop="true"
                         android:layout_margin="10dp"
                         app:cardCornerRadius="10dp"
-                        app:cardElevation="3dp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
+                        app:cardElevation="3dp">
 
                         <ImageView
                             android:id="@+id/movie_detail_poster"
@@ -87,88 +81,79 @@
                         android:id="@+id/movie_detail_rating"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_alignBottom="@id/movie_detail_poster_card"
+                        android:layout_alignParentEnd="true"
                         android:layout_margin="10dp"
                         android:background="@android:color/black"
                         android:drawableEnd="@drawable/ic_tmdb"
                         android:padding="7dp"
                         android:textColor="@android:color/white"
-                        android:textStyle="bold"
-                        app:layout_constraintBottom_toBottomOf="@id/movie_detail_poster_card"
-                        app:layout_constraintEnd_toEndOf="parent" />
+                        android:textStyle="bold" />
 
                     <ImageButton
                         android:id="@+id/movie_detail_more_info"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_alignParentEnd="true"
                         android:layout_gravity="end"
                         android:layout_marginTop="5dp"
                         android:layout_marginEnd="16dp"
+                        android:layout_marginBottom="5dp"
                         android:background="@android:color/transparent"
                         android:src="@drawable/ic_info_white"
-                        android:tint="@color/white"
-                        app:layout_constraintBottom_toTopOf="@id/movie_detail_title"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintHorizontal_bias="1.0"
-                        app:layout_constraintStart_toEndOf="@id/movie_detail_title"
-                        app:layout_constraintTop_toTopOf="@id/movie_detail_poster_card"
-                        app:layout_constraintVertical_bias="0.0" />
+                        android:tint="@color/white" />
 
                     <TextView
                         android:id="@+id/movie_detail_title"
                         style="@style/TextAppearance.MaterialComponents.Headline6"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_below="@id/movie_detail_more_info"
                         android:layout_marginStart="10dp"
+                        android:layout_toEndOf="@id/movie_detail_poster_card"
+                        android:text="ONWARD"
                         android:textAllCaps="true"
-                        android:textColor="@color/white"
-                        app:layout_constraintBottom_toTopOf="@id/movie_detail_tagline"
-                        app:layout_constraintEnd_toStartOf="@id/movie_detail_more_info"
-                        app:layout_constraintStart_toEndOf="@id/movie_detail_poster_card"
-                        app:layout_constraintTop_toTopOf="@id/movie_detail_poster_card"
-                        app:layout_constraintVertical_bias="0.0" />
+                        android:textColor="@color/white" />
 
                     <TextView
                         android:id="@+id/movie_detail_tagline"
                         style="@style/TextAppearance.MaterialComponents.Subtitle2"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_below="@id/movie_detail_title"
                         android:layout_marginStart="10dp"
+                        android:layout_toEndOf="@id/movie_detail_poster_card"
                         android:ellipsize="end"
                         android:maxLines="3"
-                        android:textColor="@color/white"
-                        app:layout_constraintBottom_toTopOf="@id/movie_detail_runtime"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@id/movie_detail_poster_card"
-                        app:layout_constraintTop_toBottomOf="@id/movie_detail_title" />
+                        android:text="Tagline: Their quest Begineth"
+                        android:textColor="@color/white" />
 
                     <TextView
                         android:id="@+id/movie_detail_runtime"
                         style="@style/TextAppearance.MaterialComponents.Subtitle2"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_below="@id/movie_detail_tagline"
                         android:layout_marginStart="10dp"
-                        android:textColor="@color/white"
-                        app:layout_constraintBottom_toTopOf="@id/movie_detail_status"
-                        app:layout_constraintHorizontal_bias="0.0"
-                        app:layout_constraintStart_toEndOf="@id/movie_detail_poster_card"
-                        app:layout_constraintTop_toBottomOf="@id/movie_detail_tagline"
-                        app:layout_constraintVertical_bias="0.0" />
+                        android:layout_toEndOf="@id/movie_detail_poster_card"
+                        android:text="Runtime: 102 minutes"
+                        android:textColor="@color/white" />
 
                     <TextView
                         android:id="@+id/movie_detail_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_below="@id/movie_detail_runtime"
+                        android:layout_alignBottom="@id/movie_detail_poster_card"
                         android:layout_marginStart="10dp"
                         android:layout_marginEnd="5dp"
-                        android:textColor="@color/white"
-                        app:layout_constraintBottom_toBottomOf="@id/movie_detail_poster_card"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintHorizontal_bias="0.0"
-                        app:layout_constraintStart_toEndOf="@id/movie_detail_poster_card"
-                        app:layout_constraintTop_toBottomOf="@id/movie_detail_runtime" />
+                        android:layout_toEndOf="@id/movie_detail_poster_card"
+                        android:text="Released"
+                        android:textColor="@color/white" />
 
 
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                </RelativeLayout>
 
             </FrameLayout>
 
