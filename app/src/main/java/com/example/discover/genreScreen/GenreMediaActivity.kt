@@ -1,6 +1,5 @@
 package com.example.discover.genreScreen
 
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.view.Menu
@@ -21,6 +20,7 @@ import com.example.discover.mediaDisplay.OnAdapterCreatedListener
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.util.LoadingFragment
 import com.example.discover.util.NoInternetFragment
+import com.example.discover.util.NoMatchFragment
 import com.google.android.material.appbar.MaterialToolbar
 
 class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
@@ -86,8 +86,6 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
         if (isMovie) {
             viewModel.genreRelatedMovies(genreId, page).observe(this, Observer {
                 if (page == 1) {
-                    val text = "Results for \"${getGenreName()}\" movies"
-                    resultText.text = text
                     firstPageOfMovies(it)
                 } else {
                     displayRestMovies(it)
@@ -96,8 +94,6 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
         } else {
             viewModel.genreRelatedShows(genreId, page).observe(this, Observer {
                 if (page == 1) {
-                    val text = "Results for \"${getGenreName()}\"shows"
-                    resultText.text = text
                     firstPageOfShows(it)
                 } else {
                     displayRestShows(it)
@@ -136,18 +132,12 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
             .replace(R.id.genre_media_container, LoadingFragment(), "LOADING").commit()
     }
 
-//    private fun removeLoadingFragment() {
-//        supportFragmentManager.findFragmentByTag("LOADING")?.let {
-//            supportFragmentManager.beginTransaction().remove(it).commit()
-//        }
-//    }
-//
-//    private fun removeResultFragment() {
-//        supportFragmentManager.findFragmentByTag("RESULT")?.let {
-//            supportFragmentManager.beginTransaction().remove(it).commit()
-//        }
-//        resultFragment = null
-//    }
+    private fun removeLoadingFragment() {
+        supportFragmentManager.findFragmentByTag("LOADING")?.let {
+            supportFragmentManager.beginTransaction()
+                .remove(it).commit()
+        }
+    }
 
     private fun displayResultFragment() {
         resultFragment = GenreMediaResultFragment.newInstance(viewModel.isLinear, typeConvert())
@@ -158,15 +148,40 @@ class GenreMediaActivity : AppCompatActivity(), OnAdapterCreatedListener,
     }
 
     private fun firstPageOfMovies(results: List<MoviePreview>) {
-        viewModel.movies = results
-        resultFragment=null
-        displayResultFragment()
+        if (results.isNotEmpty()) {
+            onNetworkDialogDismiss()
+            val text = "Results for \"${getGenreName()}\" movies"
+            resultText.text = text
+            viewModel.movies = results
+            resultFragment = null
+            displayResultFragment()
+        } else if (!(application as DiscoverApplication).checkConnectivity())
+        {
+            removeLoadingFragment()
+            onNetworkDialog()
+        }
+        else
+            displayNoResultFragment()
+    }
+
+    private fun displayNoResultFragment() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.genre_media_container, NoMatchFragment(), "NO_RESULT").commit()
     }
 
     private fun firstPageOfShows(results: List<ShowPreview>) {
-        viewModel.shows = results
-        resultFragment=null
-        displayResultFragment()
+        if (results.isNotEmpty()) {
+            onNetworkDialogDismiss()
+            val text = "Results for \"${getGenreName()}\"shows"
+            resultText.text = text
+            viewModel.shows = results
+            resultFragment = null
+            displayResultFragment()
+        } else if (!(application as DiscoverApplication).checkConnectivity()) {
+           removeLoadingFragment()
+            onNetworkDialog()
+        } else
+            displayNoResultFragment()
     }
 
     private fun displayRestMovies(results: List<MoviePreview>) {

@@ -39,66 +39,6 @@
 
             </RadioGroup>
 
-            <!--            <LinearLayout-->
-            <!--                android:layout_width="wrap_content"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:layout_marginTop="10dp"-->
-            <!--                android:layout_marginBottom="10dp"-->
-            <!--                android:orientation="horizontal">-->
-
-            <!--                <TextView-->
-            <!--                    android:layout_width="wrap_content"-->
-            <!--                    android:layout_height="wrap_content"-->
-            <!--                    android:layout_gravity="center_vertical"-->
-            <!--                    android:focusableInTouchMode="true"-->
-            <!--                    android:gravity="center"-->
-            <!--                    android:text="Release Year Limit"-->
-            <!--                    android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"-->
-            <!--                    android:textColor="@android:color/white" />-->
-
-            <!--                <ImageView-->
-            <!--                    android:id="@+id/filter_releaseYearLimit"-->
-            <!--                    style="@style/infoButtonStyle" />-->
-
-            <!--            </LinearLayout>-->
-
-            <!--            <LinearLayout-->
-            <!--                android:layout_width="match_parent"-->
-            <!--                android:layout_height="wrap_content"-->
-            <!--                android:orientation="horizontal">-->
-
-            <!--                <TextView-->
-            <!--                    android:layout_width="0dp"-->
-            <!--                    android:layout_height="wrap_content"-->
-            <!--                    android:layout_weight="1"-->
-            <!--                    android:text="From"-->
-            <!--                    android:textColor="@android:color/white" />-->
-
-            <!--                <Spinner-->
-            <!--                    android:id="@+id/from"-->
-            <!--                    android:layout_width="0dp"-->
-            <!--                    android:layout_height="wrap_content"-->
-            <!--                    android:layout_weight="2"-->
-            <!--                    android:overlapAnchor="false"-->
-            <!--                    android:splitMotionEvents="true" />-->
-
-            <!--                <TextView-->
-            <!--                    android:layout_width="0dp"-->
-            <!--                    android:layout_height="wrap_content"-->
-            <!--                    android:layout_weight="1"-->
-            <!--                    android:text="To"-->
-            <!--                    android:textColor="@android:color/white" />-->
-
-            <!--                <Spinner-->
-            <!--                    android:id="@+id/to"-->
-            <!--                    android:layout_width="0dp"-->
-            <!--                    android:layout_height="wrap_content"-->
-            <!--                    android:layout_weight="2"-->
-            <!--                    android:overlapAnchor="false"-->
-            <!--                    android:splitMotionEvents="true" />-->
-
-            <!--            </LinearLayout>-->
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -106,13 +46,18 @@
                 android:layout_marginBottom="10dp"
                 android:orientation="horizontal">
 
-                <EditText
-                    android:id="@+id/filter_voteAverage"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/filter_vote_average_title"
                     style="@style/EditTextStyle"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:hint="Vote Average"
-                    android:inputType="numberDecimal" />
+                    android:hint="@string/vote_average">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/filter_voteAverage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/white" />
+
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <ImageView
                     android:id="@+id/filter_voteAverageInfo"
@@ -127,20 +72,23 @@
                 android:layout_marginBottom="10dp"
                 android:orientation="horizontal">
 
-                <EditText
-                    android:id="@+id/filter_runtime"
+                <com.google.android.material.textfield.TextInputLayout
                     style="@style/EditTextStyle"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:hint="Runtime"
-                    android:inputType="number" />
+                    android:hint="Runtime">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/filter_runtime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/white" />
+
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <ImageView
                     android:id="@+id/filter_runtimeInfo"
                     style="@style/infoButtonStyle" />
 
             </LinearLayout>
-
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -149,13 +97,17 @@
                 android:layout_marginBottom="10dp"
                 android:orientation="horizontal">
 
-                <EditText
-                    android:id="@+id/filter_year"
+                <com.google.android.material.textfield.TextInputLayout
                     style="@style/EditTextStyle"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:hint="Year"
-                    android:inputType="number" />
+                    android:hint="Release Year">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/filter_year"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/white" />
+
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <ImageView
                     android:id="@+id/filter_yearInfo"

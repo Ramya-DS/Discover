@@ -1,13 +1,13 @@
 package com.example.discover.showsScreen
 
-import android.app.ProgressDialog
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.lifecycle.Observer
@@ -49,7 +49,6 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
     private var handler: Handler? = null
     private var timer: TimerTask? = null
 
-    //    private lateinit var swipeRefreshLayout: SwipeRefreshLayout
     private lateinit var coordinatorLayout: CoordinatorLayout
     private lateinit var poster: ViewPager2
     private lateinit var tabLayout: TabLayout
@@ -60,38 +59,32 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
 
     private lateinit var currentSeason: Season
 
-    private lateinit var progressDialog: ProgressDialog
-    private var refreshingDialog: ProgressDialog? = null
-    private var viewPagerCallback: ViewPager2.OnPageChangeCallback? = null
+    private var loadingDialog: AlertDialog? = null
+    private var refreshDialog: AlertDialog? = null
     private var snackBar: NetworkSnackbar? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_season)
+        createDialog(false)
+        loadingDialog?.show()
+
+        fetchIntentData()
 
         val toolbar: MaterialToolbar = findViewById(R.id.season_toolbar)
         setSupportActionBar(toolbar)
 
-        progressDialog = ProgressDialog(this)
-        progressDialog.setMessage("Loading")
-        progressDialog.setCancelable(false)
-        progressDialog.setInverseBackgroundForced(false)
-        progressDialog.show()
+        val text = "$showName ${currentSeason.name}"
+        supportActionBar?.title = text
 
-        fetchIntentData()
+        toolbar.setNavigationOnClickListener {
+            finish()
+            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+        }
+
 
         bindActivity(savedInstanceState)
-
-//        swipeRefreshLayout = findViewById(R.id.season_swipe_refresh)
-//        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
-//        swipeRefreshLayout.setOnRefreshListener {
-//            Handler().postDelayed({
-//                loadDetailsFromNetwork()
-//                swipeRefreshLayout.isRefreshing = false
-//            }, 1000)
-//        }
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -101,14 +94,13 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.refresh) {
-            flag = 1
-            timer?.cancel()
-            refreshingDialog = ProgressDialog(this)
-            refreshingDialog?.setMessage("Refreshing")
-            refreshingDialog?.setCancelable(false)
-            refreshingDialog?.setInverseBackgroundForced(false)
-            refreshingDialog?.show()
-            loadDetailsFromNetwork()
+            if ((application as DiscoverApplication).checkConnectivity()) {
+                flag = 1
+                timer?.cancel()
+                createDialog(true)
+                refreshDialog?.show()
+                loadDetailsFromNetwork()
+            } else onNetworkDialog()
             return true
         }
         return super.onOptionsItemSelected(item)
@@ -122,16 +114,6 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
         ).get(SeasonViewModel::class.java)
 
         viewModel.onNetworkLostListener = this
-
-        val toolbar: MaterialToolbar = findViewById(R.id.season_toolbar)
-        setSupportActionBar(toolbar)
-
-        val text = "$showName ${currentSeason.name}"
-        toolbar.title = text
-
-        toolbar.setNavigationOnClickListener {
-            overridePendingTransition(R.anim.fade_in,R.anim.fade_out)
-        }
 
         coordinatorLayout = findViewById(R.id.season_coordinator)
         poster = findViewById(R.id.season_poster)
@@ -168,11 +150,9 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
             showName = getStringExtra("show name")!!
             currentSeason = getParcelableExtra("season")!!
         }
-        Log.d("SeasonActivity", "intent $showId $showName $currentSeason")
     }
 
     private fun setSeasonDetails(season: Season) {
-//        currentSeason = season
         setEpisode(season.episodes)
 
         val overviewHeading: TextView = findViewById(R.id.season_overview_heading)
@@ -285,25 +265,10 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
         TabLayoutMediator(tabLayout, poster) { tab, _ ->
             poster.setCurrentItem(tab.position, true)
         }.attach()
-
-        progressDialog.dismiss()
-
         automaticPageChange(total)
 
-        refreshingDialog?.cancel()
-
-//        viewPagerCallback = object : ViewPager2.OnPageChangeCallback() {
-//
-//            override fun onPageSelected(position: Int) {
-//                if (position == 0) {
-//                    automaticPageChange(total)
-//                }
-//                super.onPageSelected(position)
-//
-//            }
-//        }
-
-//        poster.registerOnPageChangeCallback(viewPagerCallback!!)
+        refreshDialog?.dismiss()
+        loadingDialog?.dismiss()
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -340,7 +305,7 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
 
     override fun onBackPressed() {
         super.onBackPressed()
-        overridePendingTransition(R.anim.fade_in,R.anim.fade_out)
+        overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
 
     override fun onNetworkLostFragment() {
@@ -370,8 +335,6 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
-//                Log.d("onTabReselected", "${tab?.position} $currentPage")
-//                move = tab?.position == currentPage
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {
@@ -400,15 +363,21 @@ class SeasonActivity : AppCompatActivity(), OnCreditSelectedListener, OnNetworkL
                 handler?.post(update)
             }
         }
-        Timer().schedule(timer, 500, 5000)
+        Timer().schedule(timer, 500, 4000)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         handler?.removeCallbacksAndMessages(null)
-//        viewPagerCallback?.let {
-//            poster.unregisterOnPageChangeCallback(it)
-//        }
     }
 
+    private fun createDialog(isRefreshing: Boolean) {
+        if (isRefreshing && refreshDialog == null) {
+            val view =
+                LayoutInflater.from(this).inflate(R.layout.loading_dialog, coordinatorLayout, false)
+            view.findViewById<TextView>(R.id.loading_dialog_message).text = "Refreshing..."
+            refreshDialog = AlertDialog.Builder(this).setView(view).create()
+        } else if (loadingDialog == null)
+            loadingDialog = AlertDialog.Builder(this).setView(R.layout.loading_dialog).create()
+    }
 }

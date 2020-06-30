@@ -1,8 +1,6 @@
 package com.example.discover.mediaScreenUtils
 
 import android.app.Activity
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -49,7 +47,7 @@ class CreditAdapter(
                 holder.imageTask?.interruptThread()
                 holder.imageTask =
                     LoadPosterImage(crew.profile_path, holder.image, activity).apply {
-                        loadCreditImage(false)
+                        loadCreditImage(true)
                     }
             }
             holder.name.text = crew.name
@@ -62,7 +60,7 @@ class CreditAdapter(
                 holder.imageTask?.interruptThread()
                 holder.imageTask =
                     LoadPosterImage(cast.profile_path, holder.image, activity).apply {
-                        loadCreditImage(false)
+                        loadCreditImage(true)
                     }
             }
             holder.name.text = cast.name
@@ -72,14 +70,22 @@ class CreditAdapter(
     }
 
     private fun setPlaceHolder(imageView: ImageView) {
-        val drawable =
-            ContextCompat.getDrawable(imageView.context, R.drawable.ic_credit_placeholder)
-        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+//        val drawable =
+//            ContextCompat.getDrawable(imageView.context, R.drawable.ic_credit_placeholder)
+//        val bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888)
+//
+//        val canvas = Canvas(bitmap)
+//        drawable?.setBounds(0, 0, canvas.width, canvas.height)
+//        drawable?.draw(canvas);
+//        imageView.setImageBitmap(bitmap)
 
-        val canvas = Canvas(bitmap)
-        drawable?.setBounds(0, 0, canvas.width, canvas.height)
-        drawable?.draw(canvas);
-        imageView.setImageBitmap(bitmap)
+        imageView.scaleType = ImageView.ScaleType.CENTER_INSIDE
+        imageView.setImageDrawable(
+            ContextCompat.getDrawable(
+                imageView.context,
+                R.drawable.ic_credit_placeholder
+            )
+        )
 
     }
 }

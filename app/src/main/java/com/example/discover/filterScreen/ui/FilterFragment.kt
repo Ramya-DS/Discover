@@ -32,6 +32,7 @@ import com.example.discover.util.LoadingFragment
 import com.example.discover.util.NoInternetFragment
 import com.example.discover.util.NoMatchFragment
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputLayout
 
 /**
  * A simple [Fragment] subclass.
@@ -92,26 +93,33 @@ class FilterFragment : Fragment(), OnSortOptionSelectedListener,
 
         val sizeText: TextView = rootView.findViewById(R.id.filter_size)
 
+        val voteAverageBox: TextInputLayout = rootView.findViewById(R.id.filter_vote_average_title)
+
         //filter button
         val filter: MaterialButton = rootView.findViewById(R.id.filter_button)
         filter.setOnClickListener {
-            viewModel.discover = true
-            hideKeyboardFrom(voteAverageText)
-            hideKeyboardFrom(runtimeText)
-            hideKeyboardFrom(yearText)
-            size.postValue(0)
-            if (yearText.text.toString().trim().isNotEmpty())
-                queryMap["primary_release_year"] = yearText.text.toString().trim()
-            if (voteAverageText.text.trim().isNotEmpty())
-                queryMap["vote_average.gte"] = voteAverageText.text.toString()
-            if (runtimeText.text.trim().isNotEmpty())
-                queryMap["with_runtime.lte"] = runtimeText.text.toString()
-            Log.d("values", queryMap.toString())
-            isMovie = queryMap["media"] == "movie"
-            queryMap["page"] = "1"
-            displayLoadingFragment()
-            fillMedia(isMovie)
-            (activity!! as FilterActivity).toggleFilters()
+            val voteAverage = voteAverageText.text.trim().toString()
+            if (voteAverage.isEmpty() || voteAverage.toFloat() in 0.0..10.0) {
+                voteAverageBox.error = null
+                viewModel.discover = true
+                hideKeyboardFrom(voteAverageText)
+                hideKeyboardFrom(runtimeText)
+                hideKeyboardFrom(yearText)
+                size.postValue(0)
+                if (yearText.text.toString().trim().isNotEmpty())
+                    queryMap["primary_release_year"] = yearText.text.toString().trim()
+                if (voteAverage.isNotEmpty())
+                    queryMap["vote_average.gte"] = voteAverage
+                if (runtimeText.text.trim().isNotEmpty())
+                    queryMap["with_runtime.lte"] = runtimeText.text.toString()
+                Log.d("values", queryMap.toString())
+                isMovie = queryMap["media"] == "movie"
+                queryMap["page"] = "1"
+                displayLoadingFragment()
+                fillMedia(isMovie)
+                (activity!! as FilterActivity).toggleFilters()
+            } else
+                voteAverageBox.error = "Entered value should be from 0.0 to 10.0"
         }
 
         size.observe(viewLifecycleOwner, Observer {

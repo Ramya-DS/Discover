@@ -1,6 +1,5 @@
 package com.example.discover.category
 
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.widget.FrameLayout
@@ -9,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.discover.DiscoverApplication
 import com.example.discover.R
 import com.example.discover.searchScreen.OnNetworkLostListener
 import com.example.discover.util.LoadingFragment
@@ -46,12 +46,6 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_media_category)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            window.enterTransition = null
-//            window.exitTransition = null
-        }
-
         getIntentData()
 
         viewModel = ViewModelProvider(
@@ -149,7 +143,10 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
 
     override fun onRefresh() {
         Handler().postDelayed({
-            loadData()
+            if ((application as DiscoverApplication).checkConnectivity())
+                loadData()
+            else
+                onNetworkDialog()
             swipeRefreshLayout.isRefreshing = false
         }, 500)
     }
@@ -358,6 +355,7 @@ class MediaCategoryActivity : AppCompatActivity(), SwipeRefreshLayout.OnRefreshL
 
     override fun onBackPressed() {
         super.onBackPressed()
+        finish()
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     }
 }

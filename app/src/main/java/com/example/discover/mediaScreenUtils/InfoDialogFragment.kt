@@ -4,7 +4,6 @@ package com.example.discover.mediaScreenUtils
 import android.app.Activity
 import android.os.Bundle
 import android.os.Parcelable
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -16,6 +15,7 @@ import com.example.discover.datamodel.credit.cast.Cast
 import com.example.discover.datamodel.credit.crew.Crew
 import com.example.discover.movieScreen.MovieActivity
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.button.MaterialButton
 import java.lang.ref.WeakReference
 import java.util.*
 
@@ -75,11 +75,14 @@ class InfoDialogFragment : DialogFragment() {
 
         val rootView = inflater.inflate(R.layout.fragment_info_dialog, container, false)
 
-        val toolbar: MaterialToolbar = rootView.findViewById(R.id.fragment_info_toolbar)
-        toolbar.setNavigationOnClickListener {
-            dismiss()
-        }
+        val closeButton =
+            rootView.findViewById<MaterialButton>(R.id.fragment_info_close).apply {
+                setOnClickListener {
+                    dismiss()
+                }
+            }
 
+        val toolbar: MaterialToolbar = rootView.findViewById(R.id.fragment_info_toolbar)
         toolbar.title = title
 
         val recyclerView = rootView.findViewById<RecyclerView>(R.id.fragment_info_tlist)
@@ -117,5 +120,11 @@ class InfoDialogFragment : DialogFragment() {
             })
         }
         return rootView
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val width = resources.getDimensionPixelSize(R.dimen.widthInfoFragment)
+        dialog?.window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 }

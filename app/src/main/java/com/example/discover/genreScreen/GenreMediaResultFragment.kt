@@ -238,8 +238,8 @@ class GenreMediaResultFragment : Fragment(), OnNetworkLostListener {
 
     fun changeView(isMovie: Boolean?, isLinear: Boolean) {
         if (isLinear) {
-            val configuration = activity!!.resources.configuration
-            val screenWidthDp: Int = configuration.screenWidthDp
+            val configuration = activity?.resources?.configuration
+            val screenWidthDp: Int = configuration?.screenWidthDp ?: 3
             val spanCount = (screenWidthDp / 130.0).roundToInt()
             position =
                 (recyclerView.layoutManager as LinearLayoutManager).findFirstCompletelyVisibleItemPosition()

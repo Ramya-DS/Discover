@@ -113,7 +113,7 @@ class LoadPosterImage(
         setBackdropImageToView()
     }
 
-    fun loadCreditImage(saveToCache: Boolean) {
+    fun loadCreditImage(saveToOnlyMemoryCache: Boolean) {
         executors.execute {
             try {
                 val width = 100
@@ -125,7 +125,7 @@ class LoadPosterImage(
                     val key = createKey(url)
 
                     var mBitmap =
-                        if (!saveToCache) checkInMemoryAndDisk(key, app) else checkInMemoryCache(key, app)
+                        if (!saveToOnlyMemoryCache) checkInMemoryAndDisk(key, app) else checkInMemoryCache(key, app)
 
                     mBitmap.apply {
                         bitmap.postValue(this)
@@ -141,7 +141,7 @@ class LoadPosterImage(
                             }
                         }
                         if (mBitmap != null) {
-                            if (saveToCache)
+                            if (saveToOnlyMemoryCache)
                                 handler.post { writeToMemoryCache(key, mBitmap, app) }
                             else
                                 handler.post { writeInMemoryAndDiskCache(key, mBitmap, app) }

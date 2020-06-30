@@ -1,18 +1,18 @@
 package com.example.discover.showsScreen
 
-import android.app.ProgressDialog
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
@@ -46,6 +46,7 @@ import com.example.discover.util.NoSwipeBehavior
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.material.appbar.MaterialToolbar
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import java.lang.ref.WeakReference
@@ -56,7 +57,8 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     OnNetworkLostListener, OnGenreOrKeywordSelectedListener {
 
     private lateinit var coordinatorLayout: CoordinatorLayout
-    private var progressDialog: ProgressDialog? = null
+    private var loadingDialog: AlertDialog? = null
+    private var refreshDialog: AlertDialog? = null
     private lateinit var appBarLayout: AppBarLayout
     private lateinit var tabLayout: TabLayout
     private lateinit var collapsingToolbarLayout: CollapsingToolbarLayout
@@ -91,27 +93,12 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_show)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            postponeEnterTransition()
-//            window.enterTransition = null
-        }
-
         fetchIntentData()
 
         bindActivity(savedInstanceState)
 
-//        swipeRefreshLayout = findViewById(R.id.show_detail_swipe_refresh)
-//        swipeRefreshLayout.setColorScheme(R.color.colorPrimary, R.color.colorAccent)
-//        swipeRefreshLayout.setOnRefreshListener {
-//            Handler().postDelayed({
-//                timer?.cancel()
-//                loadDataFromNetwork()
-//                swipeRefreshLayout.isRefreshing = false
-//            }, 1000)
-//        }
-
         appBarLayout = findViewById(R.id.show_detail_appbar)
-        collapsingToolbarLayout = findViewById<CollapsingToolbarLayout>(R.id.show_detail_collapsing)
+        collapsingToolbarLayout = findViewById(R.id.show_detail_collapsing)
         toolbar = findViewById(R.id.show_detail_toolbar)
         setSupportActionBar(toolbar)
 
@@ -141,14 +128,13 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.refresh) {
-            flag = 1
-            progressDialog = ProgressDialog(this)
-            progressDialog?.setMessage("Refreshing")
-            progressDialog?.setCancelable(false)
-            progressDialog?.setInverseBackgroundForced(false)
-            progressDialog?.show()
-            timer?.cancel()
-            loadDataFromNetwork()
+            if ((application as DiscoverApplication).checkConnectivity()) {
+                flag = 1
+                createDialog(true)
+                refreshDialog?.show()
+                timer?.cancel()
+                loadDataFromNetwork()
+            } else onNetworkDialog()
             return true
         }
         return super.onOptionsItemSelected(item)
@@ -160,10 +146,8 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
                 if (abs(verticalOffset) == appBarLayout.totalScrollRange) {
                     toolbar.background = ContextCompat.getDrawable(this, R.drawable.main_background)
                     collapsingToolbarLayout.title = currentShow.name
-//                    swipeRefreshLayout.isEnabled = false
                 } else if (verticalOffset == 0) {
                     collapsingToolbarLayout.title = " "
-//                    swipeRefreshLayout.isEnabled = true
                 } else {
                     collapsingToolbarLayout.title = " "
                     toolbar.background = null
@@ -204,6 +188,8 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         })
 
         if (savedInstanceState == null) {
+            createDialog(false)
+            loadingDialog?.show()
             loadDataFromNetwork()
         }
     }
@@ -489,13 +475,20 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     fun onSeasonClicked(season: Season) {
         if ((application as DiscoverApplication).checkConnectivity()) {
             onNetworkDialogDismiss()
-            val intent = Intent(this, SeasonActivity::class.java).apply {
-                putExtra("show id", currentShow.id)
-                putExtra("season", season)
-                putExtra("show name", currentShow.name)
-            }
-            startActivity(intent)
-            overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+            if (season.episode_count != 0) {
+                val intent = Intent(this, SeasonActivity::class.java).apply {
+                    putExtra("show id", currentShow.id)
+                    putExtra("season", season)
+                    putExtra("show name", currentShow.name)
+                }
+                startActivity(intent)
+                overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
+            } else
+                Snackbar.make(
+                    coordinatorLayout,
+                    "Oops! the season details are empty",
+                    Snackbar.LENGTH_SHORT
+                ).show()
         } else
             onNetworkDialog()
     }
@@ -536,7 +529,8 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         }.attach()
 
         automaticPageChange(total)
-        progressDialog?.cancel()
+        loadingDialog?.dismiss()
+        refreshDialog?.dismiss()
     }
 
     private fun automaticPageChange(total: Int) {
@@ -544,15 +538,12 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabReselected(tab: TabLayout.Tab?) {
-//                Log.d("onTabReselected", "${tab?.position} $currentPage")
-//                move = tab?.position == currentPage
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab?) {
             }
 
             override fun onTabSelected(tab: TabLayout.Tab?) {
-                Log.d("onTabselected", "${tab?.position?.plus(1)}")
                 if (tab?.position?.plus(1) != currentPage) {
                     tab?.position?.plus(1)?.let {
                         currentPage = it
@@ -681,12 +672,14 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
     ) {
         val mClass =
             if (isGenre) GenreMediaActivity::class.java else KeywordMediaActivity::class.java
-        startActivity(Intent(this, mClass).apply {
-            putExtra("isMovie", isMovie)
-            putExtra("id", genreId)
-            putExtra("name", name)
-        })
-        overridePendingTransition(R.anim.right_in, R.anim.left_out)
+        if (isGenre || (application as DiscoverApplication).checkConnectivity()) {
+            startActivity(Intent(this, mClass).apply {
+                putExtra("isMovie", isMovie)
+                putExtra("id", genreId)
+                putExtra("name", name)
+            })
+            overridePendingTransition(R.anim.right_in, R.anim.left_out)
+        } else onNetworkDialog()
     }
 
     private fun genresForIds(list: List<Int>): List<Genres> {
@@ -702,18 +695,25 @@ class ShowActivity : AppCompatActivity(), OnReviewClickListener, OnUrlSelectedLi
         viewModel.handler.removeCallbacksAndMessages(null)
         viewModel.handler.looper.quit()
         handler?.removeCallbacksAndMessages(null)
-//        viewPagerCallback?.let {
-//            backdrop.unregisterOnPageChangeCallback(it)
-//        }
     }
 
     private fun shouldReverseSharedElementTransition(): Boolean {
         if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE || collapsingToolbarLayout.title != " ") {
-            Log.d("shouldReverseShared", "false")
             return false
         }
-        Log.d("shouldReverseShared", "true")
         return true
+    }
+
+    private fun createDialog(isRefreshing: Boolean) {
+        if (isRefreshing && refreshDialog == null) {
+            val view =
+                LayoutInflater.from(this).inflate(R.layout.loading_dialog, coordinatorLayout, false)
+            view.findViewById<TextView>(R.id.loading_dialog_message).text = "Refreshing..."
+            refreshDialog = AlertDialog.Builder(this).setView(view).setCancelable(false).create()
+        } else if (loadingDialog == null)
+            loadingDialog =
+                AlertDialog.Builder(this).setView(R.layout.loading_dialog).setCancelable(false)
+                    .create()
     }
 }
 

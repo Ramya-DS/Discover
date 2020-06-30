@@ -6,7 +6,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
-import android.os.AsyncTask
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
@@ -349,8 +348,7 @@ class DiscoverApplication : Application() {
     fun checkConnectivity(): Boolean {
         val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
-        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
-        return isConnected
+        return activeNetwork?.isConnectedOrConnecting == true
     }
 
 //    fun displayLoadingFragment(fragmentManager: FragmentManager, container: Int) {

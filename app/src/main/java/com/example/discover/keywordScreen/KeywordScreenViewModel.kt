@@ -1,31 +1,28 @@
 package com.example.discover.keywordScreen
 
 import android.app.Application
-import android.os.Handler
-import android.os.HandlerThread
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import com.example.discover.DiscoverApplication
-import com.example.discover.datamodel.genre.GenreMedia
 import com.example.discover.datamodel.media.Media
 import com.example.discover.datamodel.movie.MoviesList
 import com.example.discover.datamodel.movie.preview.MoviePreview
 import com.example.discover.datamodel.tvshow.preview.ShowPreview
 import com.example.discover.datamodel.tvshow.preview.ShowsList
 import com.example.discover.roomDatabase.DiscoverDatabase
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.example.discover.searchScreen.OnNetworkLostListener
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class KeywordScreenViewModel(private val mApplication: Application) : AndroidViewModel(mApplication){
+class KeywordScreenViewModel(private val mApplication: Application) :
+    AndroidViewModel(mApplication) {
 
     var movies: List<MoviePreview>? = null
     var shows: List<ShowPreview>? = null
+    var onNetworkLostListener: OnNetworkLostListener? = null
 
     var isLinear = true
     var position = 0
@@ -39,17 +36,21 @@ class KeywordScreenViewModel(private val mApplication: Application) : AndroidVie
         val movies = MutableLiveData<List<MoviePreview>>()
         call.enqueue(object : Callback<MoviesList> {
             override fun onFailure(call: Call<MoviesList>, t: Throwable) {
-                if (page == 1)
-                    getGenreMovies(genreId).observeForever {
-                        movies.postValue(it)
-                    }
+                onNetworkLostListener?.onNetworkLostFragment()
+//                if (page == 1)
+//                    getGenreMovies(genreId).observeForever {
+//                        movies.postValue(it)
+//                    }
             }
 
             override fun onResponse(call: Call<MoviesList>, response: Response<MoviesList>) {
                 if (response.isSuccessful) {
                     movies.postValue(response.body()!!.results)
                     writeMoviesPreviewsToDb(response.body()!!.results)
-                } else Log.d("KeywordScreenViewModel", (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!))
+                } else Log.d(
+                    "KeywordScreenViewModel",
+                    (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!)
+                )
             }
         })
 
@@ -61,17 +62,21 @@ class KeywordScreenViewModel(private val mApplication: Application) : AndroidVie
         val shows = MutableLiveData<List<ShowPreview>>()
         call.enqueue(object : Callback<ShowsList> {
             override fun onFailure(call: Call<ShowsList>, t: Throwable) {
-                if (page == 1)
-                    getGenreShows(genreId).observeForever {
-                        shows.postValue(it)
-                    }
+                onNetworkLostListener?.onNetworkLostFragment()
+//                if (page == 1)
+//                    getGenreShows(genreId).observeForever {
+//                        shows.postValue(it)
+//                    }
             }
 
             override fun onResponse(call: Call<ShowsList>, response: Response<ShowsList>) {
                 if (response.isSuccessful) {
                     shows.postValue(response.body()!!.results)
                     writeShowsPreviewsToDb(response.body()!!.results)
-                } else Log.d("KeywordScreenViewModel", (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!))
+                } else Log.d(
+                    "KeywordScreenViewModel",
+                    (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!)
+                )
             }
         })
 
@@ -79,7 +84,7 @@ class KeywordScreenViewModel(private val mApplication: Application) : AndroidVie
     }
 
     private fun writeShowsPreviewsToDb(shows: List<ShowPreview>) {
-        (mApplication as DiscoverApplication).handler.post{
+        (mApplication as DiscoverApplication).handler.post {
             for (i in shows) {
                 i.apply {
                     insertMedia(
@@ -105,7 +110,7 @@ class KeywordScreenViewModel(private val mApplication: Application) : AndroidVie
     }
 
     fun writeMoviesPreviewsToDb(list: List<MoviePreview>) {
-        (mApplication as DiscoverApplication).handler.post{
+        (mApplication as DiscoverApplication).handler.post {
             for (i in list) {
                 i.apply {
                     insertMedia(
@@ -142,75 +147,75 @@ class KeywordScreenViewModel(private val mApplication: Application) : AndroidVie
         categoryDao.insertType(api_id, 0, isMovie)
     }
 
-    private fun getGenreMovies(id: Int): LiveData<List<MoviePreview>> {
-        val results = MutableLiveData<List<MoviePreview>>()
-        viewModelScope.launch(Dispatchers.IO) {
-            results.postValue(formatToMoviePreview(categoryDao.getGenreMedia(id, true)))
-        }
-        return results
-    }
-
-    private fun getGenreShows(id: Int): LiveData<List<ShowPreview>> {
-        val results = MutableLiveData<List<ShowPreview>>()
-        viewModelScope.launch(Dispatchers.IO) {
-            results.postValue(formatToShowPreview(categoryDao.getGenreMedia(id, false)))
-        }
-        return results
-    }
-
-    private fun formatToShowPreview(genreMedia: GenreMedia?): MutableList<ShowPreview> {
-        val shows = mutableListOf<ShowPreview>()
-        genreMedia?.let {
-            for (i in it.medias) {
-                i.apply {
-                    shows.add(
-                        ShowPreview(
-                            api_id,
-                            name,
-                            vote_count,
-                            vote_average,
-                            first_air_date,
-                            poster_path,
-                            getGenreIds(id),
-                            original_language,
-                            backdrop_path,
-                            overview,
-                            origin_country.substringAfter('[').substringBefore(']').split(',')
-                        )
-                    )
-                }
-            }
-        }
-        shows.shuffle()
-        return shows
-    }
-
-    private fun formatToMoviePreview(genreMedia: GenreMedia?): MutableList<MoviePreview> {
-        val movies = mutableListOf<MoviePreview>()
-        genreMedia?.let {
-            for (i in it.medias) {
-                i.apply {
-                    movies.add(
-                        MoviePreview(
-                            adult,
-                            backdrop_path,
-                            getGenreIds(id),
-                            api_id,
-                            original_language,
-                            overview,
-                            poster_path,
-                            release_date,
-                            title,
-                            vote_average,
-                            vote_count
-                        )
-                    )
-                }
-            }
-        }
-        movies.shuffle()
-        return movies
-    }
+//    private fun getKeywordMovies(id: Int): LiveData<List<MoviePreview>> {
+//        val results = MutableLiveData<List<MoviePreview>>()
+//        viewModelScope.launch(Dispatchers.IO) {
+//            results.postValue(formatToMoviePreview(categoryDao.getGenreMedia(id, true)))
+//        }
+//        return results
+//    }
+//
+//    private fun getGenreShows(id: Int): LiveData<List<ShowPreview>> {
+//        val results = MutableLiveData<List<ShowPreview>>()
+//        viewModelScope.launch(Dispatchers.IO) {
+//            results.postValue(formatToShowPreview(categoryDao.getGenreMedia(id, false)))
+//        }
+//        return results
+//    }
+//
+//    private fun formatToShowPreview(genreMedia: GenreMedia?): MutableList<ShowPreview> {
+//        val shows = mutableListOf<ShowPreview>()
+//        genreMedia?.let {
+//            for (i in it.medias) {
+//                i.apply {
+//                    shows.add(
+//                        ShowPreview(
+//                            api_id,
+//                            name,
+//                            vote_count,
+//                            vote_average,
+//                            first_air_date,
+//                            poster_path,
+//                            getGenreIds(id),
+//                            original_language,
+//                            backdrop_path,
+//                            overview,
+//                            origin_country.substringAfter('[').substringBefore(']').split(',')
+//                        )
+//                    )
+//                }
+//            }
+//        }
+//        shows.shuffle()
+//        return shows
+//    }
+//
+//    private fun formatToMoviePreview(genreMedia: GenreMedia?): MutableList<MoviePreview> {
+//        val movies = mutableListOf<MoviePreview>()
+//        genreMedia?.let {
+//            for (i in it.medias) {
+//                i.apply {
+//                    movies.add(
+//                        MoviePreview(
+//                            adult,
+//                            backdrop_path,
+//                            getGenreIds(id),
+//                            api_id,
+//                            original_language,
+//                            overview,
+//                            poster_path,
+//                            release_date,
+//                            title,
+//                            vote_average,
+//                            vote_count
+//                        )
+//                    )
+//                }
+//            }
+//        }
+//        movies.shuffle()
+//        return movies
+//    }
 
     private fun getGenreIds(id: Int): List<Int> {
         return categoryDao.getGenreIds(id)

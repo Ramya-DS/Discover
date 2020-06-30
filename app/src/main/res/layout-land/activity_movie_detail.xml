@@ -71,7 +71,7 @@
 
                         <RelativeLayout
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content">
+                            android:layout_height="170dp">
 
                             <com.google.android.material.card.MaterialCardView
                                 android:id="@+id/movie_detail_poster_card"
@@ -97,10 +97,10 @@
                                 android:id="@+id/movie_detail_rating"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_alignBottom="@id/movie_detail_poster_card"
-                                android:layout_alignParentEnd="true"
-                                android:layout_margin="10dp"
-                                android:background="@android:color/black"
+                                android:layout_alignTop="@id/movie_detail_poster_card"
+                                android:layout_margin="5dp"
+                                android:layout_toEndOf="@id/movie_detail_poster_card"
+                                android:background="#80000000"
                                 android:drawableEnd="@drawable/ic_tmdb"
                                 android:padding="7dp"
                                 android:textColor="@android:color/white"
@@ -110,27 +110,31 @@
                                 android:id="@+id/movie_detail_more_info"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_alignParentTop="true"
+                                android:layout_alignTop="@id/movie_detail_poster_card"
+                                android:layout_alignBottom="@id/movie_detail_rating"
                                 android:layout_alignParentEnd="true"
                                 android:layout_gravity="end"
+                                android:layout_marginStart="15dp"
                                 android:layout_marginTop="5dp"
                                 android:layout_marginEnd="16dp"
-                                android:layout_marginBottom="5dp"
+                                android:layout_marginBottom="2dp"
                                 android:background="@android:color/transparent"
                                 android:src="@drawable/ic_info_white"
-                                android:tint="@color/white" />
+                                android:tint="#e0e0e0" />
 
                             <TextView
                                 android:id="@+id/movie_detail_title"
-                                style="@style/TextAppearance.MaterialComponents.Headline6"
+                                style="@style/TextAppearance.MaterialComponents.Subtitle1"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_below="@id/movie_detail_more_info"
-                                android:layout_marginStart="10dp"
+                                android:layout_below="@id/movie_detail_rating"
+                                android:layout_marginStart="5dp"
+                                android:layout_marginEnd="5dp"
                                 android:layout_toEndOf="@id/movie_detail_poster_card"
                                 android:text="ONWARD"
                                 android:textAllCaps="true"
-                                android:textColor="@color/white" />
+                                android:textColor="@color/white"
+                                android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/movie_detail_tagline"
@@ -138,10 +142,11 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_below="@id/movie_detail_title"
-                                android:layout_marginStart="10dp"
+                                android:layout_marginStart="5dp"
+                                android:layout_marginEnd="5dp"
                                 android:layout_toEndOf="@id/movie_detail_poster_card"
                                 android:ellipsize="end"
-                                android:maxLines="3"
+                                android:maxLines="2"
                                 android:text="Tagline: Their quest Begineth"
                                 android:textColor="@color/white" />
 
@@ -151,7 +156,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_below="@id/movie_detail_tagline"
-                                android:layout_marginStart="10dp"
+                                android:layout_marginStart="5dp"
+                                android:layout_marginEnd="5dp"
                                 android:layout_toEndOf="@id/movie_detail_poster_card"
                                 android:text="Runtime: 102 minutes"
                                 android:textColor="@color/white" />
@@ -162,15 +168,13 @@
                                 android:layout_height="wrap_content"
                                 android:layout_below="@id/movie_detail_runtime"
                                 android:layout_alignBottom="@id/movie_detail_poster_card"
-                                android:layout_marginStart="10dp"
+                                android:layout_marginStart="5dp"
                                 android:layout_marginEnd="5dp"
                                 android:layout_toEndOf="@id/movie_detail_poster_card"
                                 android:text="Released"
                                 android:textColor="@color/white" />
 
-
                         </RelativeLayout>
-
 
                     </FrameLayout>
 

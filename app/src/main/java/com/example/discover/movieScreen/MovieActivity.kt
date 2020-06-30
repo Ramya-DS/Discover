@@ -1,13 +1,12 @@
 package com.example.discover.movieScreen
 
-import android.app.ProgressDialog
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -16,6 +15,7 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
@@ -43,6 +43,7 @@ import com.example.discover.genreScreen.GenreMediaActivity
 import com.example.discover.keywordScreen.KeywordMediaActivity
 import com.example.discover.mediaScreenUtils.*
 import com.example.discover.searchScreen.OnNetworkLostListener
+import com.example.discover.util.ExpandableTextView
 import com.example.discover.util.LoadPosterImage
 import com.example.discover.util.NetworkSnackbar
 import com.example.discover.util.NoSwipeBehavior
@@ -60,7 +61,8 @@ class MovieActivity : AppCompatActivity(),
     OnUrlSelectedListener, OnNetworkLostListener, OnGenreOrKeywordSelectedListener {
 
     private lateinit var coordinatorLayout: CoordinatorLayout
-    private var progressDialog: ProgressDialog? = null
+    private var refreshDialog: AlertDialog? = null
+    private var loadingDialog: AlertDialog? = null
     private lateinit var appBarLayout: AppBarLayout
     private lateinit var tabLayout: TabLayout
     private lateinit var collapsingToolbarLayout: CollapsingToolbarLayout
@@ -71,7 +73,7 @@ class MovieActivity : AppCompatActivity(),
     private lateinit var title: TextView
     private lateinit var tagLine: TextView
     private lateinit var runtime: TextView
-    private lateinit var overview: TextView
+    private lateinit var overview: ExpandableTextView
     private lateinit var status: TextView
     private lateinit var infoButton: ImageButton
 
@@ -99,15 +101,6 @@ class MovieActivity : AppCompatActivity(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movie_detail)
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//            postponeEnterTransition()
-//            window.enterTransition = null
-//            window.exitTransition = null
-//            window?.sharedElementEnterTransition = ChangeBounds().setDuration(200)
-//            window?.sharedElementExitTransition =
-//                ChangeBounds().setDuration(200).setInterpolator(DecelerateInterpolator())
-        }
 
         fetchIntentData()
         bindActivity(savedInstanceState)
@@ -148,6 +141,7 @@ class MovieActivity : AppCompatActivity(),
                 } else {
                     collapsingToolbarLayout.title = " "
                     toolbar.background = null
+                    infoItem?.isVisible = false
                 }
             }
         })
@@ -175,14 +169,20 @@ class MovieActivity : AppCompatActivity(),
                 return true
             }
             R.id.refresh -> {
-                flag = 1
-                progressDialog = ProgressDialog(this)
-                progressDialog?.setMessage("Refreshing")
-                progressDialog?.setCancelable(false)
-                progressDialog?.setInverseBackgroundForced(false)
-                progressDialog?.show()
-                timer?.cancel()
-                loadDetailsFromNetwork()
+                if ((application as DiscoverApplication).checkConnectivity()) {
+                    flag = 1
+                    createDialog(true)
+                    refreshDialog?.show()
+//                    refreshDialog = ProgressDialog(this)
+//                    refreshDialog?.setMessage("Refreshing")
+//                    refreshDialog?.setCancelable(false)
+//                    refreshDialog?.setInverseBackgroundForced(false)
+//                    refreshDialog?.show()
+                    timer?.cancel()
+                    loadDetailsFromNetwork()
+                } else
+                    onNetworkDialog()
+
                 return true
             }
             else -> return super.onOptionsItemSelected(item)
@@ -221,6 +221,8 @@ class MovieActivity : AppCompatActivity(),
         })
 
         if (savedInstanceState == null) {
+            createDialog(false)
+            loadingDialog?.show()
             loadDetailsFromNetwork()
         }
     }
@@ -304,9 +306,9 @@ class MovieActivity : AppCompatActivity(),
             if (movieDetails.runtime != 0) "Runtime: ${movieDetails.runtime} minutes" else "Runtime: -"
         runtime.text = text
 
-        if (movieDetails.overview != null && movieDetails.overview.isNotEmpty())
+        if (movieDetails.overview != null && movieDetails.overview.isNotEmpty()) {
             overview.text = movieDetails.overview
-        else {
+        } else {
             overview.visibility = GONE
             findViewById<View>(R.id.movie_detail_overview_heading).visibility = GONE
         }
@@ -613,18 +615,8 @@ class MovieActivity : AppCompatActivity(),
         }.attach()
 
         automaticPageChange(total)
-//        viewPagerCallback = object : ViewPager2.OnPageChangeCallback() {
-//
-//            override fun onPageSelected(position: Int) {
-//                if (position == 0) {
-//                    automaticPageChange(total)
-//                }
-//                super.onPageSelected(position)
-//
-//            }
-//        }
-//        backdropImage.registerOnPageChangeCallback(viewPagerCallback!!)
-        progressDialog?.dismiss()
+        refreshDialog?.dismiss()
+        loadingDialog?.dismiss()
     }
 
     private fun automaticPageChange(total: Int) {
@@ -763,12 +755,14 @@ class MovieActivity : AppCompatActivity(),
         val mClass =
             if (isGenre) GenreMediaActivity::class.java else KeywordMediaActivity::class.java
 
-        startActivity(Intent(this, mClass).apply {
-            putExtra("isMovie", isMovie)
-            putExtra("id", genreId)
-            putExtra("name", name)
-        })
-        overridePendingTransition(R.anim.right_in, R.anim.left_out)
+        if (isGenre || (application as DiscoverApplication).checkConnectivity()) {
+            startActivity(Intent(this, mClass).apply {
+                putExtra("isMovie", isMovie)
+                putExtra("id", genreId)
+                putExtra("name", name)
+            })
+            overridePendingTransition(R.anim.right_in, R.anim.left_out)
+        } else onNetworkDialog()
     }
 
     private fun genresForIds(list: List<Int>): List<Genres> {
@@ -789,5 +783,15 @@ class MovieActivity : AppCompatActivity(),
     override fun onDestroy() {
         super.onDestroy()
         handler?.removeCallbacksAndMessages(null)
+    }
+
+    private fun createDialog(isRefreshing: Boolean) {
+        if (isRefreshing && refreshDialog == null) {
+            val view =
+                LayoutInflater.from(this).inflate(R.layout.loading_dialog, coordinatorLayout, false)
+            view.findViewById<TextView>(R.id.loading_dialog_message).text = "Refreshing..."
+            refreshDialog = AlertDialog.Builder(this).setView(view).create()
+        } else if (loadingDialog == null)
+            loadingDialog = AlertDialog.Builder(this).setView(R.layout.loading_dialog).create()
     }
 }

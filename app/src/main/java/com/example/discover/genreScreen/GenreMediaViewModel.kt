@@ -1,8 +1,6 @@
 package com.example.discover.genreScreen
 
 import android.app.Application
-import android.os.Handler
-import android.os.HandlerThread
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -18,13 +16,9 @@ import com.example.discover.datamodel.tvshow.preview.ShowsList
 import com.example.discover.roomDatabase.DiscoverDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
 
 class GenreMediaViewModel(private val mApplication: Application) : AndroidViewModel(mApplication) {
 
@@ -53,7 +47,10 @@ class GenreMediaViewModel(private val mApplication: Application) : AndroidViewMo
                 if (response.isSuccessful) {
                     movies.postValue(response.body()!!.results)
                     writeMoviesPreviewsToDb(response.body()!!.results)
-                } else Log.d("GenreMediaViewModel", (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!))
+                } else Log.d(
+                    "GenreMediaViewModel",
+                    (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!)
+                )
             }
         })
 
@@ -75,7 +72,10 @@ class GenreMediaViewModel(private val mApplication: Application) : AndroidViewMo
                 if (response.isSuccessful) {
                     shows.postValue(response.body()!!.results)
                     writeShowsPreviewsToDb(response.body()!!.results)
-                } else Log.d("GenreMediaViewModel", (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!))
+                } else Log.d(
+                    "GenreMediaViewModel",
+                    (mApplication as DiscoverApplication).fetchErrorMessage(response.errorBody()!!)
+                )
             }
         })
 
@@ -83,7 +83,7 @@ class GenreMediaViewModel(private val mApplication: Application) : AndroidViewMo
     }
 
     private fun writeShowsPreviewsToDb(shows: List<ShowPreview>) {
-        (mApplication as DiscoverApplication).handler.post{
+        (mApplication as DiscoverApplication).handler.post {
             for (i in shows) {
                 i.apply {
                     insertMedia(
@@ -109,7 +109,7 @@ class GenreMediaViewModel(private val mApplication: Application) : AndroidViewMo
     }
 
     fun writeMoviesPreviewsToDb(list: List<MoviePreview>) {
-        (mApplication as DiscoverApplication).handler.post{
+        (mApplication as DiscoverApplication).handler.post {
             for (i in list) {
                 i.apply {
                     insertMedia(
@@ -167,21 +167,22 @@ class GenreMediaViewModel(private val mApplication: Application) : AndroidViewMo
         genreMedia?.let {
             for (i in it.medias) {
                 i.apply {
-                    shows.add(
-                        ShowPreview(
-                            api_id,
-                            name,
-                            vote_count,
-                            vote_average,
-                            first_air_date,
-                            poster_path,
-                            getGenreIds(id),
-                            original_language,
-                            backdrop_path,
-                            overview,
-                            origin_country.substringAfter('[').substringBefore(']').split(',')
+                    if (name.isNotEmpty())
+                        shows.add(
+                            ShowPreview(
+                                api_id,
+                                name,
+                                vote_count,
+                                vote_average,
+                                first_air_date,
+                                poster_path,
+                                getGenreIds(id),
+                                original_language,
+                                backdrop_path,
+                                overview,
+                                origin_country.substringAfter('[').substringBefore(']').split(',')
+                            )
                         )
-                    )
                 }
             }
         }
@@ -194,21 +195,22 @@ class GenreMediaViewModel(private val mApplication: Application) : AndroidViewMo
         genreMedia?.let {
             for (i in it.medias) {
                 i.apply {
-                    movies.add(
-                        MoviePreview(
-                            adult,
-                            backdrop_path,
-                            getGenreIds(id),
-                            api_id,
-                            original_language,
-                            overview,
-                            poster_path,
-                            release_date,
-                            title,
-                            vote_average,
-                            vote_count
+                    if (title.isNotEmpty())
+                        movies.add(
+                            MoviePreview(
+                                adult,
+                                backdrop_path,
+                                getGenreIds(id),
+                                api_id,
+                                original_language,
+                                overview,
+                                poster_path,
+                                release_date,
+                                title,
+                                vote_average,
+                                vote_count
+                            )
                         )
-                    )
                 }
             }
         }
